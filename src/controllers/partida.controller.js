@@ -46,5 +46,12 @@ export const PartidaController = {
       const found = await PartidaService.findById(req.params.id);
       res.json(found);
     } catch (err) { next(err); }
+  },
+
+  async getByUserId(req, res, next) {
+    try {
+      const found = await PartidaService.findByUserId(req.params.userId);
+      res.json(found);
+    } catch (err) { next(err); }
   }
 };

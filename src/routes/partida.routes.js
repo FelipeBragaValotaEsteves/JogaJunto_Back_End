@@ -8,5 +8,6 @@ router.post('/', requireAuth, PartidaController.create);
 router.patch('/:id', requireAuth, PartidaController.update);
 router.post('/:id/cancel', requireAuth, PartidaController.cancel);
 router.get('/:id', requireAuth, PartidaController.getById);
+router.get('/:userId', requireAuth, PartidaController.getByUserId);
 
 export default router;

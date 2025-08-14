@@ -12,5 +12,8 @@ export const PartidaService = {
   },
   findById(id) {
     return PartidaModel.findById(id);
+  },
+  findByUserId(userId) {
+    return PartidaModel.findByUserId(id);
   }
 };

@@ -3,7 +3,7 @@ import { db } from '../config/database.js';
 export const PartidaModel = {
   async create({ titulo, data_hora, local, organizador_id }) {
     const { rows } = await db.query(
-      `INSERT INTO partidas (titulo, data_hora, local, organizador_id)
+      `INSERT INTO partida (titulo, data_hora, local, organizador_id)
        VALUES ($1, $2, $3, $4)
        RETURNING id, titulo, data_hora, local, status, organizador_id, criado_em`,
       [titulo, data_hora, local, organizador_id]
@@ -17,7 +17,7 @@ export const PartidaModel = {
     const setSql = keys.map((k, i) => `${k} = $${i + 1}`).join(', ');
     const params = [...Object.values(fields), id];
     const { rows } = await db.query(
-      `UPDATE partidas SET ${setSql} WHERE id = $${keys.length + 1}
+      `UPDATE partida SET ${setSql} WHERE id = $${keys.length + 1}
        RETURNING id, titulo, data_hora, local, status, organizador_id, criado_em`,
       params
     );
@@ -26,7 +26,7 @@ export const PartidaModel = {
 
   async cancel(id) {
     const { rows } = await db.query(
-      `UPDATE partidas SET status = 'cancelada' WHERE id = $1
+      `UPDATE partida SET status = 'cancelada' WHERE id = $1
        RETURNING id, status`,
       [id]
     );
@@ -35,9 +35,17 @@ export const PartidaModel = {
 
   async findById(id) {
     const { rows } = await db.query(
-      `SELECT * FROM partidas WHERE id = $1`,
+      `SELECT * FROM partida WHERE id = $1`,
       [id]
     );
     return rows[0] ?? null;
   },
+
+  async findByUserId(userId) {
+     const { rows } = await db.query(
+      `SELECT * FROM partida WHERE usuario_id = $1`,
+      [userId]
+    );
+    return rows ?? null;
+  }
 };
