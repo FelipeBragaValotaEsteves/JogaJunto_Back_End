@@ -16,11 +16,29 @@ export const UsuarioModel = {
     },
 
     async findById(id) {
-        const { rows } = await db.query(
-            `SELECT id, nome, email, criado_em FROM usuario WHERE id = $1`,
+        const userResult = await db.query(
+            `SELECT id, nome, email, img, criado_em
+       FROM usuario
+       WHERE id = $1`,
             [id]
         );
-        return rows[0] ?? null;
+
+        if (userResult.rows.length === 0) return null;
+        const user = userResult.rows[0];
+
+        // busca posições favoritas
+        const posicoesResult = await db.query(
+            `SELECT p.id, p.nome
+       FROM usuario_posicao up
+       JOIN posicao p ON p.id = up.posicao_id
+       WHERE up.usuario_id = $1`,
+            [id]
+        );
+
+        return {
+            ...user,
+            posicoes: posicoesResult.rows
+        };
     },
 
     async findWithHashById(id) {
@@ -30,20 +48,30 @@ export const UsuarioModel = {
 
     async update(id, { name, email, img }) {
         const fields = [];
-        const params = [];
-        if (name !== undefined) { fields.push(`nome = $${fields.length + 1}`); params.push(name); }
-        if (email !== undefined) { fields.push(`email = $${fields.length + 1}`); params.push(email); }
-        if (img !== undefined) { fields.push(`img = $${fields.length + 1}`); params.push(img); }
+        const values = [];
+        let idx = 1;
 
-        if (!fields.length) return this.findById(id);
+        if (name) {
+            fields.push(`nome = $${idx++}`);
+            values.push(name);
+        }
+        if (email) {
+            fields.push(`email = $${idx++}`);
+            values.push(email);
+        }
+        if (img) {
+            fields.push(`img = $${idx++}`);
+            values.push(img);
+        }
 
-        params.push(id);
-        const { rows } = await db.query(
-            `UPDATE usuario SET ${fields.join(', ')} WHERE id = $${params.length}
-       RETURNING id, nome, email, criado_em`,
-            params
+        if (!fields.length) return;
+
+        values.push(id);
+
+        await db.query(
+            `UPDATE usuario SET ${fields.join(', ')} WHERE id = $${idx}`,
+            values
         );
-        return rows[0] ?? null;
     },
 
     async updatePassword(id, password_hash) {

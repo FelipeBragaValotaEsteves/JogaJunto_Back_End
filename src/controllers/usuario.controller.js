@@ -7,34 +7,44 @@ export const UsuarioController = {
   async me(req, res, next) {
     try {
       const user = await UsuarioModel.findById(req.user.id);
+
+      if (user?.img) {
+        user.imgUrl = `${process.env.BASE_URL}/uploads/${user.img}`;
+      } else {
+        user.imgUrl = null;
+      }
+
       res.json(user);
     } catch (err) { next(err); }
   },
 
   async updateMe(req, res, next) {
     try {
+      const { name, email, positions } = req.body;
 
-      const schema = z.object({
-        name: z.preprocess(v => (v === '' ? undefined : v), z.string().min(2)).optional(),
-        email: z.preprocess(v => (v === '' ? undefined : v), z.string().email()).optional(),
+      let positionsArray = [];
+      if (positions) {
+        try {
+          positionsArray = JSON.parse(positions);
+          if (!Array.isArray(positionsArray)) positionsArray = [];
+        } catch {
+          positionsArray = [];
+        }
+      }
 
-        img: z.string().max(255).nullable().optional(),
+      const imgFile = req.file ? req.file.filename : null;
+
+      const updatedUser = await UsuarioService.updateProfile(req.user.id, {
+        name,
+        email,
+        img: imgFile,
+        positions: positionsArray
       });
 
-      const raw = {
-        name: req.body?.name,
-        email: req.body?.email,
-       
-        img: req.file ? req.file.filename : (req.body?.img ?? undefined),
-      };
-
-      if (raw.img === '') raw.img = null;
-
-      const data = schema.parse(raw);
-
-      const updated = await UsuarioService.updateProfile(req.user.id, data);
-      res.json(updated);
-    } catch (err) { next(err); }
+      res.json(updatedUser);
+    } catch (err) {
+      next(err);
+    }
   },
 
   async changePassword(req, res, next) {

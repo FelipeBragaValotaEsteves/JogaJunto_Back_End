@@ -28,5 +28,35 @@ export const AuthController = {
       const result = await AuthService.login(data);
       res.json(result);
     } catch (err) { next(err); }
+  },
+
+  async forgotPassword(req, res, next) {
+    try {
+      const schema = z.object({
+        email: z.string().email()
+      });
+      const { email } = schema.parse(req.body);
+
+      const out = await AuthService.requestPasswordReset(email);
+      res.json(out);
+    } catch (err) {
+      next(err);
+    }
+  },
+
+  async resetPassword(req, res, next) {
+    try {
+      const schema = z.object({
+        email: z.string().email(),
+        code: z.string().min(4).max(10),
+        newPassword: z.string().min(6)
+      });
+      const { email, code, newPassword } = schema.parse(req.body);
+
+      const out = await AuthService.resetPassword(email, code, newPassword);
+      res.json(out);
+    } catch (err) {
+      next(err);
+    }
   }
 };

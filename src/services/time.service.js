@@ -25,11 +25,6 @@ export const TimeService = {
     return partida;
   },
 
-  /**
-   * RF009 - Formação manual
-   * payload: { A: string[], B: string[] }  (ids de usuários)
-   * Regras: só permite ids que estejam "confirmado" nos convites
-   */
   async formarManual({ partida_id, A = [], B = [] }) {
     await this.validarPartida(partida_id);
     const confirmados = await ConviteModel.listByPartidaAndStatus(partida_id, 'confirmado');
@@ -47,11 +42,6 @@ export const TimeService = {
     return TimeModel.setBulk(partida_id, all);
   },
 
-  /**
-   * RF010 - Formação automática
-   * Estratégia simples: embaralha confirmados e divide em 2 times o mais balanceado possível (A e B).
-   * (Futuro: usar rating, posição, etc.)
-   */
   async formarAutomatico({ partida_id }) {
     await this.validarPartida(partida_id);
     const confirmados = await ConviteModel.listByPartidaAndStatus(partida_id, 'confirmado');
