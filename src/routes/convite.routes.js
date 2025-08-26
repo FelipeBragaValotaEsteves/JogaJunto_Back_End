@@ -4,10 +4,9 @@ import { ConviteController } from '../controllers/convite.controller.js';
 
 const router = Router();
 
-router.post('/partidas/:id/convites', requireAuth, ConviteController.enviar);
-
-router.post('/convites/:id/confirmar', requireAuth, ConviteController.confirmar);
-
-router.get('/partidas/:id/convites', requireAuth, ConviteController.listar);
+router.post('/', requireAuth, ConviteController.create);
+router.post('/:id/cancelar', requireAuth, ConviteController.cancel);
+router.post('/:id/aceitar', requireAuth, ConviteController.accept);
+router.post('/:id/recusar', requireAuth, ConviteController.decline);
 
 export default router;

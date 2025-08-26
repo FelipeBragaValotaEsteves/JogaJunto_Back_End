@@ -1,19 +1,33 @@
 import { PartidaModel } from '../models/partida.model.js';
 
+const DEFAULT_STATUS = 'aguardando';
+
 export const PartidaService = {
   create(data) {
-    return PartidaModel.create(data);
+    const payload = {
+      ...data,
+      status: data.status ?? DEFAULT_STATUS
+    };
+    return PartidaModel.create(payload);
   },
-  update(id, fields) {
-    return PartidaModel.update(id, fields);
+
+  update(id, usuarioId, fields) {
+    return PartidaModel.updateByCreator(id, usuarioId, fields);
   },
-  cancel(id) {
-    return PartidaModel.cancel(id);
+
+  cancel(id, usuarioId) {
+    return PartidaModel.cancelByCreator(id, usuarioId);
   },
-  findById(id) {
-    return PartidaModel.findById(id);
+
+  findByIdDetailed(id) {
+    return PartidaModel.findByIdDetailed(id);
   },
+
   findByUserId(userId) {
-    return PartidaModel.findByUserId(id);
+    return PartidaModel.findByUserId(userId);
+  },
+
+  findPlayedByUserId(userId) {
+    return PartidaModel.findPlayedByUserId(userId);
   }
 };

@@ -1,37 +1,65 @@
 import { z } from 'zod';
 import { ConviteService } from '../services/convite.service.js';
 
-export const ConviteController = {
-  async enviar(req, res, next) {
-    try {
-      const paramsSchema = z.object({ id: z.string().uuid() });
-      const bodySchema = z.object({ convidado_ids: z.array(z.string().uuid()).min(1) });
-      const { id: partida_id } = paramsSchema.parse(req.params);
-      const { convidado_ids } = bodySchema.parse(req.body);
+const Status = z.enum(['pendente', 'aceito', 'recusado', 'cancelado']);
 
-      const results = await ConviteService.enviar({ partida_id, convidado_ids });
-      res.status(201).json({ results });
+const createSchema = z.object({
+  partida_id: z.number().int(),
+  usuario_id: z.number().int(),
+  status: Status.optional()
+});
+
+export const ConviteController = {
+  async create(req, res, next) {
+    try {
+      const data = createSchema.parse(req.body);
+
+      const created = await ConviteService.create(
+        {
+          partida_id: data.partida_id,
+          usuario_id: data.usuario_id,
+          status: data.status
+        },
+        req.user.id 
+      );
+
+      if (created === 'conflict') {
+        return res.status(409).json({ message: 'Já existe um convite pendente para este usuário nesta partida.' });
+      }
+      if (!created) {
+        return res.status(404).json({ message: 'Partida não encontrada ou você não é o criador.' });
+      }
+      res.status(201).json(created);
     } catch (err) { next(err); }
   },
 
-  async confirmar(req, res, next) {
+  async cancel(req, res, next) {
     try {
-      const schema = z.object({ id: z.string().uuid() });
-      const { id } = schema.parse(req.params);
-      const updated = await ConviteService.confirmar({ convite_id: id });
+      const updated = await ConviteService.cancel(Number(req.params.id), req.user.id);
+      if (!updated) {
+        return res.status(404).json({ message: 'Convite não encontrado, não está pendente, ou você não é o criador da partida.' });
+      }
       res.json(updated);
     } catch (err) { next(err); }
   },
 
-  async listar(req, res, next) {
+  async accept(req, res, next) {
     try {
-      const paramsSchema = z.object({ id: z.string().uuid() });
-      const querySchema = z.object({ status: z.enum(['pendente', 'confirmado', 'recusado']).optional() });
-      const { id: partida_id } = paramsSchema.parse(req.params);
-      const { status } = querySchema.parse(req.query);
-
-      const list = await ConviteService.listar({ partida_id, status });
-      res.json(list);
+      const updated = await ConviteService.accept(Number(req.params.id), req.user.id);
+      if (!updated) {
+        return res.status(404).json({ message: 'Convite não encontrado, não está pendente, ou você não é o convidado.' });
+      }
+      res.json(updated);
     } catch (err) { next(err); }
   },
+
+  async decline(req, res, next) {
+    try {
+      const updated = await ConviteService.decline(Number(req.params.id), req.user.id);
+      if (!updated) {
+        return res.status(404).json({ message: 'Convite não encontrado, não está pendente, ou você não é o convidado.' });
+      }
+      res.json(updated);
+    } catch (err) { next(err); }
+  }
 };

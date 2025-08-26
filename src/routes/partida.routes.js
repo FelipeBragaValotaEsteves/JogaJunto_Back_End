@@ -4,10 +4,12 @@ import { PartidaController } from '../controllers/partida.controller.js';
 
 const router = Router();
 
-router.post('/', requireAuth, PartidaController.create);    
+router.post('/', requireAuth, PartidaController.create);
 router.patch('/:id', requireAuth, PartidaController.update);
-router.post('/:id/cancel', requireAuth, PartidaController.cancel);
+router.post('/cancelar/:id', requireAuth, PartidaController.cancel);
+
+router.get('/criada/:userId', requireAuth, PartidaController.getByUserId);
+router.get('/jogada/:userId', requireAuth, PartidaController.getPlayedByUserId);
 router.get('/:id', requireAuth, PartidaController.getById);
-router.get('/:userId', requireAuth, PartidaController.getByUserId);
 
 export default router;
