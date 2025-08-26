@@ -3,7 +3,7 @@ import authRoutes from './auth.routes.js';
 import usuarioRoutes from './usuario.routes.js';
 import partidaRoutes from './partida.routes.js';
 import posicaoRoutes from './posicao.routes.js';
-import conviteRoutes from './routes/convite.routes.js';
+import conviteRoutes from './convite.routes.js';
 
 const router = Router();
 
