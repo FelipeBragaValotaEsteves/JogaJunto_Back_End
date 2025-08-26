@@ -10,7 +10,6 @@ const app = createApp();
 
 app.use(cors());
 
-// Depois configura helmet mas desabilita o Cross-Origin-Resource-Policy padrão
 app.use(helmet({
   crossOriginResourcePolicy: false
 }));

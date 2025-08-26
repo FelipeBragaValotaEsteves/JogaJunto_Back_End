@@ -26,7 +26,6 @@ export const UsuarioModel = {
         if (userResult.rows.length === 0) return null;
         const user = userResult.rows[0];
 
-        // busca posições favoritas
         const posicoesResult = await db.query(
             `SELECT p.id, p.nome
        FROM usuario_posicao up

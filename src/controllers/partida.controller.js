@@ -10,8 +10,14 @@ const createSchema = z.object({
   numero: z.number().int().optional(),
   cidade_id: z.number().int().optional(),
   aberto: z.boolean().optional(),
-  datahora_inicio: z.preprocess(toDate, z.date()),
-  datahora_fim: z.preprocess((v) => (v ? toDate(v) : v), z.date().optional()),
+  datahora_inicio: z.preprocess(
+    (v) => v === null || v === undefined ? null : toDate(v),
+    z.date().optional().nullable()
+  ),
+  datahora_fim: z.preprocess(
+    (v) => v === null || v === undefined ? null : toDate(v),
+    z.date().optional().nullable()
+  ),
   tipo_partida_id: z.number().int(),
   status: z.string().max(15).optional()
 });
