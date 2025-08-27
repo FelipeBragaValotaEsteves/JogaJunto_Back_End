@@ -5,7 +5,7 @@ import { PartidaController } from '../controllers/partida.controller.js';
 const router = Router();
 
 router.post('/', requireAuth, PartidaController.create);
-router.patch('/:id', requireAuth, PartidaController.update);
+router.put('/:id', requireAuth, PartidaController.update);
 router.post('/cancelar/:id', requireAuth, PartidaController.cancel);
 
 router.get('/criada/:userId', requireAuth, PartidaController.getByUserId);
