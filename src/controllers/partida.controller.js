@@ -19,7 +19,11 @@ const createSchema = z.object({
     z.date().optional().nullable()
   ),
   tipo_partida_id: z.number().int(),
-  status: z.string().max(15).optional()
+  status: z.string().max(15).optional(),
+  valor: z.coerce.number()
+    .min(0)
+    .refine(v => Math.round(v * 100) === v * 100, { message: 'Valor inválido' })
+    .optional(),
 });
 
 const updateSchema = z.object({
@@ -32,7 +36,11 @@ const updateSchema = z.object({
   datahora_inicio: z.preprocess((v) => (v ? toDate(v) : v), z.date().optional()),
   datahora_fim: z.preprocess((v) => (v ? toDate(v) : v), z.date().optional()),
   tipo_partida_id: z.number().int().optional(),
-  status: z.string().max(15).optional()
+  status: z.string().max(15).optional(),
+  valor: z.coerce.number()
+    .min(0)
+    .refine(v => Math.round(v * 100) === v * 100, { message: 'Valor inválido' })
+    .optional(),
 }).refine((data) => Object.keys(data).length > 0, { message: 'Nada para atualizar' });
 
 export const PartidaController = {

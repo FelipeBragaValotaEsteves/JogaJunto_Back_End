@@ -2,26 +2,26 @@ import { db } from '../config/database.js';
 
 const ALLOWED_UPDATE_FIELDS = [
   'local', 'rua', 'bairro', 'numero', 'cidade_id',
-  'aberto', 'datahora_inicio', 'datahora_fim', 'tipo_partida_id', 'status'
+  'aberto', 'datahora_inicio', 'datahora_fim', 'tipo_partida_id', 'status', 'valor'
 ];
 
 export const PartidaModel = {
   async create({
     local, rua = null, bairro = null, numero = null, cidade_id = null,
     usuario_criador_id, aberto = false, datahora_inicio, datahora_fim = null,
-    tipo_partida_id, status
+    tipo_partida_id, status, valor = null
   }) {
     const { rows } = await db.query(
       `INSERT INTO partida (
          local, rua, bairro, numero, cidade_id,
          usuario_criador_id, aberto, datahora_inicio, datahora_fim,
-         tipo_partida_id, status
-       ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)
+         tipo_partida_id, status, valor
+       ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)
        RETURNING *`,
       [
         local, rua, bairro, numero, cidade_id,
         usuario_criador_id, aberto, datahora_inicio, datahora_fim,
-        tipo_partida_id, status
+        tipo_partida_id, status, valor
       ]
     );
     return rows[0];
@@ -63,9 +63,11 @@ export const PartidaModel = {
       `SELECT
          p.*,
          c.nome  AS cidade_nome,
+         e.id AS estado_id,
          t.nome  AS tipo_partida_nome
        FROM partida p
-       LEFT JOIN cidade c       ON c.id = p.cidade_id
+       LEFT JOIN cidade c ON c.id = p.cidade_id
+       LEFT JOIN estado e ON e.id = c.estado_id 
        LEFT JOIN tipo_partida t ON t.id = p.tipo_partida_id
        WHERE p.id = $1`,
       [id]

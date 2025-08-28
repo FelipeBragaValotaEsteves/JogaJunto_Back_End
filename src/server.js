@@ -30,7 +30,7 @@ app.use('/uploads', express.static(path.resolve('uploads'), {
 
 app.listen(env.port, async () => {
   try {
-    console.log(`API rodando em http://192.168.15.7:${env.port}`);
+    console.log(`API rodando em http://localhost:${env.port}`);
   } catch (e) {
     console.error('Erro ao garantir schema:', e);
     process.exit(1);

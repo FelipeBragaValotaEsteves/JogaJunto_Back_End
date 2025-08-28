@@ -6,7 +6,7 @@ export const PartidaService = {
   create(data) {
     const payload = {
       ...data,
-      status: data.status ?? DEFAULT_STATUS
+      status: DEFAULT_STATUS
     };
     return PartidaModel.create(payload);
   },
