@@ -10,14 +10,12 @@ const createSchema = z.object({
   numero: z.number().int().optional(),
   cidade_id: z.number().int().optional(),
   aberto: z.boolean().optional(),
-  datahora_inicio: z.preprocess(
+  data: z.preprocess(
     (v) => v === null || v === undefined ? null : toDate(v),
     z.date().optional().nullable()
   ),
-  datahora_fim: z.preprocess(
-    (v) => v === null || v === undefined ? null : toDate(v),
-    z.date().optional().nullable()
-  ),
+  hora_inicio: z.string().optional(),
+  hora_fim: z.string().optional(),
   tipo_partida_id: z.number().int(),
   status: z.string().max(15).optional(),
   valor: z.coerce.number()
@@ -33,8 +31,12 @@ const updateSchema = z.object({
   numero: z.number().int().optional(),
   cidade_id: z.number().int().optional(),
   aberto: z.boolean().optional(),
-  datahora_inicio: z.preprocess((v) => (v ? toDate(v) : v), z.date().optional()),
-  datahora_fim: z.preprocess((v) => (v ? toDate(v) : v), z.date().optional()),
+  data: z.preprocess(
+    (v) => v === null || v === undefined ? null : toDate(v),
+    z.date().optional().nullable()
+  ),
+  hora_inicio: z.string().optional(),
+  hora_fim: z.string().optional(),
   tipo_partida_id: z.number().int().optional(),
   status: z.string().max(15).optional(),
   valor: z.coerce.number()

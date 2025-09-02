@@ -2,25 +2,25 @@ import { db } from '../config/database.js';
 
 const ALLOWED_UPDATE_FIELDS = [
   'local', 'rua', 'bairro', 'numero', 'cidade_id',
-  'aberto', 'datahora_inicio', 'datahora_fim', 'tipo_partida_id', 'status', 'valor'
+  'aberto', 'data', 'hora_inicio', 'hora_fim', 'tipo_partida_id', 'status', 'valor'
 ];
 
 export const PartidaModel = {
   async create({
     local, rua = null, bairro = null, numero = null, cidade_id = null,
-    usuario_criador_id, aberto = false, datahora_inicio, datahora_fim = null,
+    usuario_criador_id, aberto = false, data, hora_inicio, hora_fim = null,
     tipo_partida_id, status, valor = null
   }) {
     const { rows } = await db.query(
       `INSERT INTO partida (
          local, rua, bairro, numero, cidade_id,
-         usuario_criador_id, aberto, datahora_inicio, datahora_fim,
+         usuario_criador_id, aberto, data, hora_inicio, hora_fim,
          tipo_partida_id, status, valor
-       ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)
+       ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12, $13)
        RETURNING *`,
       [
         local, rua, bairro, numero, cidade_id,
-        usuario_criador_id, aberto, datahora_inicio, datahora_fim,
+        usuario_criador_id, aberto, data, hora_inicio, hora_fim,
         tipo_partida_id, status, valor
       ]
     );
@@ -79,7 +79,7 @@ export const PartidaModel = {
     const { rows } = await db.query(
       `SELECT * FROM partida
         WHERE usuario_criador_id = $1
-        ORDER BY datahora_inicio DESC`,
+        ORDER BY data DESC, hora_inicio DESC`,
       [userId]
     );
     return rows;
@@ -90,7 +90,7 @@ export const PartidaModel = {
       `SELECT * FROM partida p 
        INNER JOIN partida_participante pp ON pp.partida_id = p.id 
        WHERE pp.usuario_id = $1 and participou = true 
-      ORDER BY datahora_inicio DESC`,
+      ORDER BY data DESC, hora_inicio DESC`,
       [userId]
     );
     return rows;
