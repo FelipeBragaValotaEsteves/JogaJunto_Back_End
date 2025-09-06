@@ -29,5 +29,9 @@ export const PartidaService = {
 
   findPlayedByUserId(userId) {
     return PartidaModel.findPlayedByUserId(userId);
+  },
+
+  findByCity(city) {
+    return PartidaModel.findByCity(city);
   }
 };

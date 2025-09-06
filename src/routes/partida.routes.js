@@ -11,5 +11,6 @@ router.post('/cancelar/:id', requireAuth, PartidaController.cancel);
 router.get('/criada/:userId', requireAuth, PartidaController.getByUserId);
 router.get('/jogada/:userId', requireAuth, PartidaController.getPlayedByUserId);
 router.get('/:id', requireAuth, PartidaController.getById);
+router.get('/proximas/:city', requireAuth, PartidaController.getByCityName);
 
 export default router;

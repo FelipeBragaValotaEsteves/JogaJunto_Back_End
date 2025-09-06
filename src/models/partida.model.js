@@ -94,5 +94,17 @@ export const PartidaModel = {
       [userId]
     );
     return rows;
+  },
+
+  async findByCity(city) {
+    const { rows } = await db.query(
+      `SELECT
+          p.*
+        FROM partida p
+        INNER JOIN cidade c ON c.id = p.cidade_id
+        WHERE c.nome ILIKE '%' || $1 || '%'`,
+      [city]
+    );
+    return rows;
   }
 };

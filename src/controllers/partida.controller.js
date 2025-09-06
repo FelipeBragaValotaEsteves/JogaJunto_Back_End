@@ -61,7 +61,7 @@ export const PartidaController = {
     try {
       const data = updateSchema.parse(req.body);
       const updated = await PartidaService.update(Number(req.params.id), req.user.id, data);
-      if (!updated) return res.status(404).json({ message: 'Partida não encontrada ou você não é o criador.' });
+      if (!updated) return res.status(404).json({ message: 'Horário não encontrado ou você não é o criador.' });
       res.json(updated);
     } catch (err) { next(err); }
   },
@@ -69,7 +69,7 @@ export const PartidaController = {
   async cancel(req, res, next) {
     try {
       const result = await PartidaService.cancel(Number(req.params.id), req.user.id);
-      if (!result) return res.status(404).json({ message: 'Partida não encontrada ou você não é o criador.' });
+      if (!result) return res.status(404).json({ message: 'Horário não encontrado ou você não é o criador.' });
       res.json(result);
     } catch (err) { next(err); }
   },
@@ -77,7 +77,7 @@ export const PartidaController = {
   async getById(req, res, next) {
     try {
       const found = await PartidaService.findByIdDetailed(Number(req.params.id));
-      if (!found) return res.status(404).json({ message: 'Partida não encontrada.' });
+      if (!found) return res.status(404).json({ message: 'Horário não encontrado.' });
       res.json(found);
     } catch (err) { next(err); }
   },
@@ -92,6 +92,19 @@ export const PartidaController = {
   async getPlayedByUserId(req, res, next) {
     try {
       const found = await PartidaService.findPlayedByUserId(Number(req.params.userId));
+      res.json(found);
+    } catch (err) { next(err); }
+  },
+
+  async getByCityName(req, res, next) {
+    try {
+      const city  = req.params.city;
+
+      if (!city) {
+        return res.status(400).json({ message: 'Cidade inválida' });
+      }
+
+      const found = await PartidaService.findByCity(city);
       res.json(found);
     } catch (err) { next(err); }
   }
