@@ -1,67 +1,39 @@
 import { TimeModel } from '../models/time.model.js';
-import { ConviteModel } from '../models/convite.model.js';
-import { PartidaModel } from '../models/partida.model.js';
-
-function shuffle(arr) {
-  const a = arr.slice();
-  for (let i = a.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [a[i], a[j]] = [a[j], a[i]];
-  }
-  return a;
-}
+import { JogoModel } from '../models/jogo.model.js';
 
 export const TimeService = {
-  async validarPartida(partida_id) {
-    const partida = await PartidaModel.findById(partida_id);
-    if (!partida) {
-      const err = new Error('Partida não encontrada');
-      err.status = 404; throw err;
-    }
-    if (partida.status === 'cancelada') {
-      const err = new Error('Partida cancelada');
-      err.status = 400; throw err;
-    }
-    return partida;
+  async criarTime({ jogoId, nome, solicitanteId }) {
+    const jogo = await JogoModel.findJogoById(jogoId);
+    if (!jogo) return 'not_found_jogo';
+
+    const partida = await JogoModel.getPartidaById(jogo.partida_id);
+    if (!partida || partida.usuario_criador_id !== solicitanteId) return 'forbidden';
+
+    const time = await TimeModel.createTime(jogoId, nome);
+    return time;
   },
 
-  async formarManual({ partida_id, A = [], B = [] }) {
-    await this.validarPartida(partida_id);
-    const confirmados = await ConviteModel.listByPartidaAndStatus(partida_id, 'confirmado');
-    const setConfirmados = new Set(confirmados.map(c => c.convidado_id));
+  async editarTime({ timeId, nome, solicitanteId }) {
+    const time = await TimeModel.findTimeById(timeId);
+    if (!time) return 'not_found_time';
 
-    const all = [...A.map(id => ({ jogador_id: id, time_label: 'A' })), ...B.map(id => ({ jogador_id: id, time_label: 'B' }))];
+    const jogo = await JogoModel.findJogoById(time.partida_jogo_id);
+    const partida = await JogoModel.getPartidaById(jogo.partida_id);
+    if (!partida || partida.usuario_criador_id !== solicitanteId) return 'forbidden';
 
-    for (const e of all) {
-      if (!setConfirmados.has(e.jogador_id)) {
-        const err = new Error('Todos os jogadores devem estar confirmados');
-        err.status = 400; throw err;
-      }
-    }
-
-    return TimeModel.setBulk(partida_id, all);
+    const updated = await TimeModel.updateTime(timeId, { nome });
+    return updated;
   },
 
-  async formarAutomatico({ partida_id }) {
-    await this.validarPartida(partida_id);
-    const confirmados = await ConviteModel.listByPartidaAndStatus(partida_id, 'confirmado');
-    const ids = shuffle(confirmados.map(c => c.convidado_id));
+  async excluirTime({ timeId, solicitanteId }) {
+    const time = await TimeModel.findTimeById(timeId);
+    if (!time) return 'not_found_time';
 
-    const A = [], B = [];
-    ids.forEach((id, idx) => (idx % 2 === 0 ? A : B).push(id));
+    const jogo = await JogoModel.findJogoById(time.partida_jogo_id);
+    const partida = await JogoModel.getPartidaById(jogo.partida_id);
+    if (!partida || partida.usuario_criador_id !== solicitanteId) return 'forbidden';
 
-    const entries = [
-      ...A.map(id => ({ jogador_id: id, time_label: 'A' })),
-      ...B.map(id => ({ jogador_id: id, time_label: 'B' })),
-    ];
-    return TimeModel.setBulk(partida_id, entries);
-  },
-
-  getFormacao(partida_id) {
-    return TimeModel.getByPartida(partida_id);
-  },
-
-  limpar(partida_id) {
-    return TimeModel.clear(partida_id);
+    await TimeModel.deleteTime(timeId);
+    return 'ok';
   },
 };

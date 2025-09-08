@@ -1,31 +1,58 @@
 import { ConviteModel } from '../models/convite.model.js';
+import { JogadorModel } from '../models/jogador.model.js';
 
 export const ConviteService = {
-  async create({ partida_id, usuario_id, status }, actorUserId) {
-    const created = await ConviteModel.createByCreator({
+  async criar({ partida_id, usuario_id, solicitante_id }) {
+    const partida = await ConviteModel.getPartidaById(partida_id);
+    if (!partida) return 'not_found';
+    if (partida.usuario_criador_id !== solicitante_id) return 'forbidden';
+
+    const existsAny = await ConviteModel.existsAny(partida_id, usuario_id);
+    if (existsAny) return 'conflict';
+
+    const created = await ConviteModel.create({ partida_id, usuario_id, status: 'pendente' });
+    return created;
+  },
+
+  async aceitar({ partida_id, usuario_id }) {
+    const pending = await ConviteModel.findPending(partida_id, usuario_id);
+    if (!pending) return 'not_found';
+
+    const updated = await ConviteModel.updateStatus(pending.id, 'aceito');
+
+    const jogador = await JogadorModel.createUsuarioJogador({ usuario_id, nome: null });
+    await ConviteModel.ensureParticipante({
       partida_id,
-      usuario_id,
-      status,
-      criador_id: actorUserId 
+      jogador_id: jogador.id,
+      confirmado: false,
+      participou: false,
+      nota: null,
     });
 
-    if (created) return created;
-
-    const existsPending = await ConviteModel.existsPending(partida_id, usuario_id);
-    if (existsPending) return 'conflict';
-
-    return null;
+    return { convite: updated };
   },
 
-  cancel(id, solicitante_id) {
-    return ConviteModel.cancelByCreator(id, solicitante_id);
+  async recusar({ partida_id, usuario_id }) {
+    const pending = await ConviteModel.findPending(partida_id, usuario_id);
+    if (!pending) return 'not_found';
+
+    const updated = await ConviteModel.updateStatus(pending.id, 'recusado');
+    return { convite: updated };
   },
 
-  accept(id, userId) {
-    return ConviteModel.acceptByUser(id, userId);
+  async cancelar({ partida_id, usuario_id, solicitante_id }) {
+    const partida = await ConviteModel.getPartidaById(partida_id);
+    if (!partida) return 'not_found_partida';
+    if (partida.usuario_criador_id !== solicitante_id) return 'forbidden';
+
+    const pending = await ConviteModel.findPending(partida_id, usuario_id);
+    if (!pending) return 'not_found';
+
+    const updated = await ConviteModel.updateStatus(pending.id, 'cancelado');
+    return { convite: updated };
   },
 
-  decline(id, userId) {
-    return ConviteModel.declineByUser(id, userId);
-  }
+   async listarPorPartida({ partida_id }) {
+    return await ConviteModel.listByPartida(partida_id);
+  },
 };

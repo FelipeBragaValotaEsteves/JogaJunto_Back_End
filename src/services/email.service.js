@@ -11,8 +11,6 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-console.log(env.smtpUser, env.smtpPass)
-
 export async function sendRecoveryEmail(to, code) {
   const info = await transporter.sendMail({
     from: `"Suporte" <${env.smtpUser}>`,
@@ -21,6 +19,4 @@ export async function sendRecoveryEmail(to, code) {
     text: `Seu código de recuperação é: ${code}`,
     html: `<p>Seu código de recuperação é: <strong>${code}</strong></p>`,
   });
-
-  console.log('E-mail enviado:', info.messageId);
 }

@@ -1,65 +1,83 @@
-import { z } from 'zod';
 import { ConviteService } from '../services/convite.service.js';
 
-const Status = z.enum(['pendente', 'aceito', 'recusado', 'cancelado']);
-
-const createSchema = z.object({
-  partida_id: z.number().int(),
-  usuario_id: z.number().int(),
-  status: Status.optional()
-});
-
 export const ConviteController = {
-  async create(req, res, next) {
+  async criar(req, res) {
     try {
-      const data = createSchema.parse(req.body);
+      const solicitante_id = req.user?.id;
+      const { partida_id, usuario_id } = req.body;
 
-      const created = await ConviteService.create(
-        {
-          partida_id: data.partida_id,
-          usuario_id: data.usuario_id,
-          status: data.status
-        },
-        req.user.id 
-      );
+      const result = await ConviteService.criar({ partida_id, usuario_id, solicitante_id });
 
-      if (created === 'conflict') {
-        return res.status(409).json({ message: 'Já existe um convite pendente para este usuário nesta partida.' });
-      }
-      if (!created) {
-        return res.status(404).json({ message: 'Partida não encontrada ou você não é o criador.' });
-      }
-      res.status(201).json(created);
-    } catch (err) { next(err); }
+      if (result === 'forbidden') return res.status(403).json({ message: 'Apenas o organizador pode convidar.' });
+      if (result === 'conflict')  return res.status(409).json({ message: 'Já existe convite para este usuário.' });
+      if (result === 'not_found') return res.status(404).json({ message: 'Partida não encontrada.' });
+
+      return res.status(201).json(result);
+    } catch {
+      return res.status(500).json({ message: 'Erro ao criar convite.' });
+    }
   },
 
-  async cancel(req, res, next) {
+  async aceitar(req, res) {
     try {
-      const updated = await ConviteService.cancel(Number(req.params.id), req.user.id);
-      if (!updated) {
-        return res.status(404).json({ message: 'Convite não encontrado, não está pendente, ou você não é o criador da partida.' });
+      const authUserId = req.user?.id;
+      const { partida_id, usuario_id } = req.body;
+
+      if (!authUserId || authUserId !== Number(usuario_id)) {
+        return res.status(403).json({ message: 'Apenas o próprio usuário pode aceitar o convite.' });
       }
-      res.json(updated);
-    } catch (err) { next(err); }
+
+      const result = await ConviteService.aceitar({ partida_id, usuario_id: authUserId });
+      if (result === 'not_found') return res.status(404).json({ message: 'Convite pendente não encontrado.' });
+
+      return res.status(200).json(result);
+    } catch {
+      return res.status(500).json({ message: 'Erro ao aceitar convite.' });
+    }
   },
 
-  async accept(req, res, next) {
+  async recusar(req, res) {
     try {
-      const updated = await ConviteService.accept(Number(req.params.id), req.user.id);
-      if (!updated) {
-        return res.status(404).json({ message: 'Convite não encontrado, não está pendente, ou você não é o convidado.' });
+      const authUserId = req.user?.id;
+      const { partida_id, usuario_id } = req.body;
+
+      if (!authUserId || authUserId !== Number(usuario_id)) {
+        return res.status(403).json({ message: 'Apenas o próprio usuário pode recusar o convite.' });
       }
-      res.json(updated);
-    } catch (err) { next(err); }
+
+      const result = await ConviteService.recusar({ partida_id, usuario_id: authUserId });
+      if (result === 'not_found') return res.status(404).json({ message: 'Convite pendente não encontrado.' });
+
+      return res.status(200).json(result);
+    } catch {
+      return res.status(500).json({ message: 'Erro ao recusar convite.' });
+    }
   },
 
-  async decline(req, res, next) {
+  async cancelar(req, res) {
     try {
-      const updated = await ConviteService.decline(Number(req.params.id), req.user.id);
-      if (!updated) {
-        return res.status(404).json({ message: 'Convite não encontrado, não está pendente, ou você não é o convidado.' });
-      }
-      res.json(updated);
-    } catch (err) { next(err); }
-  }
+      const solicitante_id = req.user?.id; 
+      const { partida_id, usuario_id } = req.body;
+
+      const result = await ConviteService.cancelar({ partida_id, usuario_id, solicitante_id });
+
+      if (result === 'forbidden') return res.status(403).json({ message: 'Apenas o organizador pode cancelar.' });
+      if (result === 'not_found_partida') return res.status(404).json({ message: 'Partida não encontrada.' });
+      if (result === 'not_found') return res.status(404).json({ message: 'Convite pendente não encontrado.' });
+
+      return res.status(200).json(result);
+    } catch {
+      return res.status(500).json({ message: 'Erro ao cancelar convite.' });
+    }
+  },
+
+  async listarPorPartida(req, res) {
+    try {
+      const { partida_id } = req.params;
+      const data = await ConviteService.listarPorPartida({ partida_id: Number(partida_id) });
+      return res.status(200).json(data);
+    } catch {
+      return res.status(500).json({ message: 'Erro ao listar convites.' });
+    }
+  },
 };

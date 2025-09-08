@@ -106,5 +106,72 @@ export const PartidaModel = {
       [city]
     );
     return rows;
+  },
+
+  // async aggregateResumoPorPartida(partidaId) {
+  //   const q = `
+  //   SELECT
+  //     j.id  AS jogo_id,
+  //     t.id  AS time_id,
+  //     t.nome AS time_nome,
+  //     COALESCE(SUM(COALESCE(tp.gol, 0)), 0)               AS gols,
+  //     COALESCE(SUM(COALESCE(tp.assistencia, 0)), 0)       AS assistencias,
+  //     COALESCE(SUM(COALESCE(tp.cartao_amarelo, 0)), 0)    AS cartoes_amarelos,
+  //     COALESCE(SUM(COALESCE(tp.cartao_vermelho, 0)), 0)   AS cartoes_vermelhos
+  //   FROM public.partida_jogo j
+  //   JOIN public.partida_jogo_time t ON t.partida_jogo_id = j.id
+  //   LEFT JOIN public.partida_jogo_time_participante tp ON tp.partida_jogo_time_id = t.id
+  //   WHERE j.partida_id = $1
+  //   GROUP BY j.id, t.id, t.nome
+  //   ORDER BY j.id, t.id
+  // `;
+  //   const { rows } = await db.query(q, [partidaId]);
+  //   return rows;
+  // },
+
+  async aggregateResumoPorPartida(partidaId) {
+    const q = `
+    WITH time_totais AS (
+      SELECT
+        t.id AS time_id,
+        j.id AS jogo_id,
+        COALESCE(SUM(COALESCE(tp.gol, 0)), 0)             AS time_gols,
+        COALESCE(SUM(COALESCE(tp.assistencia, 0)), 0)     AS time_assistencias,
+        COALESCE(SUM(COALESCE(tp.cartao_amarelo, 0)), 0)  AS time_cartoes_amarelos,
+        COALESCE(SUM(COALESCE(tp.cartao_vermelho, 0)), 0) AS time_cartoes_vermelhos
+      FROM public.partida_jogo j
+      JOIN public.partida_jogo_time t ON t.partida_jogo_id = j.id
+      LEFT JOIN public.partida_jogo_time_participante tp ON tp.partida_jogo_time_id = t.id
+      WHERE j.partida_id = $1
+      GROUP BY j.id, t.id
+    )
+    SELECT
+      j.id AS jogo_id,
+      t.id AS time_id,
+      t.nome AS time_nome,
+      tt.time_gols,
+      tt.time_assistencias,
+      tt.time_cartoes_amarelos,
+      tt.time_cartoes_vermelhos,
+
+      tp.id AS time_participante_id,
+      tp.jogador_id,
+      COALESCE(tp.gol, 0) AS gol,
+      COALESCE(tp.assistencia, 0) AS assistencia,
+      COALESCE(tp.defesa, 0) AS defesa,
+      COALESCE(tp.cartao_amarelo, 0) AS cartao_amarelo,
+      COALESCE(tp.cartao_vermelho, 0) AS cartao_vermelho,
+
+      jg.nome AS jogador_nome
+    FROM public.partida_jogo j
+    JOIN public.partida_jogo_time t ON t.partida_jogo_id = j.id
+    LEFT JOIN public.partida_jogo_time_participante tp ON tp.partida_jogo_time_id = t.id AND( tp.gol <> 0 OR tp.assistencia <> 0 OR tp.defesa <> 0 OR tp.cartao_amarelo <> 0 OR tp.cartao_vermelho <> 0)
+    LEFT JOIN public.jogador jg ON jg.id = tp.jogador_id
+    JOIN time_totais tt ON tt.time_id = t.id AND tt.jogo_id = j.id
+    WHERE j.partida_id = $1 
+    ORDER BY j.id, t.id, tp.id NULLS LAST
+  `;
+    const { rows } = await db.query(q, [partidaId]);
+    return rows;
   }
 };

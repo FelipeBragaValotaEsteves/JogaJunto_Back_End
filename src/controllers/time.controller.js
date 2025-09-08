@@ -1,41 +1,44 @@
-import { z } from 'zod';
 import { TimeService } from '../services/time.service.js';
 
 export const TimeController = {
-  async manual(req, res, next) {
+  async criarTime(req, res) {
     try {
-      const params = z.object({ id: z.string().uuid() }).parse(req.params);
-      const body = z.object({
-        A: z.array(z.string().uuid()).default([]),
-        B: z.array(z.string().uuid()).default([]),
-      }).parse(req.body);
-
-      const formacao = await TimeService.formarManual({ partida_id: params.id, ...body });
-      res.status(201).json(formacao);
-    } catch (err) { next(err); }
+      const solicitanteId = req.user?.id;
+      const { jogoId } = req.params;
+      const { nome } = req.body;
+      const data = await TimeService.criarTime({ jogoId: Number(jogoId), nome, solicitanteId });
+      if (data === 'not_found_jogo') return res.status(404).json({ message: 'Jogo não encontrado.' });
+      if (data === 'forbidden') return res.status(403).json({ message: 'Apenas o organizador pode criar times.' });
+      return res.status(201).json(data);
+    } catch {
+      return res.status(500).json({ message: 'Erro ao criar time.' });
+    }
   },
 
-  async automatico(req, res, next) {
+  async editarTime(req, res) {
     try {
-      const params = z.object({ id: z.string().uuid() }).parse(req.params);
-      const formacao = await TimeService.formarAutomatico({ partida_id: params.id });
-      res.status(201).json(formacao);
-    } catch (err) { next(err); }
+      const solicitanteId = req.user?.id;
+      const { timeId } = req.params;
+      const { nome } = req.body;
+      const data = await TimeService.editarTime({ timeId: Number(timeId), nome, solicitanteId });
+      if (data === 'not_found_time') return res.status(404).json({ message: 'Time não encontrado.' });
+      if (data === 'forbidden') return res.status(403).json({ message: 'Apenas o organizador pode editar.' });
+      return res.status(200).json(data);
+    } catch {
+      return res.status(500).json({ message: 'Erro ao editar time.' });
+    }
   },
 
-  async get(req, res, next) {
+  async excluirTime(req, res) {
     try {
-      const params = z.object({ id: z.string().uuid() }).parse(req.params);
-      const rows = await TimeService.getFormacao(params.id);
-      res.json(rows);
-    } catch (err) { next(err); }
-  },
-
-  async clear(req, res, next) {
-    try {
-      const params = z.object({ id: z.string().uuid() }).parse(req.params);
-      const out = await TimeService.limpar(params.id);
-      res.json(out);
-    } catch (err) { next(err); }
+      const solicitanteId = req.user?.id;
+      const { timeId } = req.params;
+      const data = await TimeService.excluirTime({ timeId: Number(timeId), solicitanteId });
+      if (data === 'not_found_time') return res.status(404).json({ message: 'Time não encontrado.' });
+      if (data === 'forbidden') return res.status(403).json({ message: 'Apenas o organizador pode excluir.' });
+      return res.status(200).json({ message: 'Time excluído com sucesso.' });
+    } catch {
+      return res.status(500).json({ message: 'Erro ao excluir time.' });
+    }
   },
 };

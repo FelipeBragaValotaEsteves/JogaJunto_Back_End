@@ -38,8 +38,12 @@ export const AuthService = {
     async register({ name, email, password }) {
         const exists = await UsuarioModel.findByEmail(email);
         if (exists) { const err = new Error('E-mail já cadastrado'); err.status = 400; throw err; }
+
         const password_hash = await hashPassword(password);
         const user = await UsuarioModel.create({ name, email, password_hash });
+
+        await JogadorModel.createUsuarioJogador({ usuario_id: user.id, nome: user.nome });
+
         const token = signToken({ sub: user.id, email: user.email });
         return { user, token };
     },
@@ -47,7 +51,6 @@ export const AuthService = {
     async login({ email, password }) {
         const user = await UsuarioModel.findByEmail(email);
         if (!user) { const err = new Error('Credenciais inválidas'); err.status = 401; throw err; }
-        console.log(email, password)
         const ok = await comparePassword(password, user.senha_hash);
         if (!ok) { const err = new Error('Credenciais inválidas'); err.status = 401; throw err; }
         const token = signToken({ sub: user.id, email: user.email });

@@ -1,84 +1,88 @@
 import { db } from '../config/database.js';
 
-const STATUS = {
-  PENDENTE: 'pendente',
-  ACEITO: 'aceito',
-  RECUSADO: 'recusado',
-  CANCELADO: 'cancelado'
-};
-
 export const ConviteModel = {
-  async createByCreator({ partida_id, usuario_id, status = STATUS.PENDENTE, criador_id }) {
-
-    const { rows } = await db.query(
-      `INSERT INTO convite (usuario_id, partida_id, status)
-       SELECT $2, $1, $3
-       FROM partida p
-       WHERE p.id = $1
-         AND p.usuario_criador_id = $4
-         AND NOT EXISTS (
-           SELECT 1 FROM convite c
-            WHERE c.partida_id = $1
-              AND c.usuario_id = $2
-              AND c.status = 'pendente'
-         )
-       RETURNING *`,
-      [partida_id, usuario_id, status, criador_id]
-    );
-    return rows[0] ?? null;
+  async getPartidaById(id) {
+    const q = 'SELECT id, usuario_criador_id FROM public.partida WHERE id = $1';
+    const { rows } = await db.query(q, [id]);
+    return rows[0] || null;
   },
 
-  async existsPending(partida_id, usuario_id) {
-    const { rows } = await db.query(
-      `SELECT 1
-         FROM convite
-        WHERE partida_id = $1
-          AND usuario_id = $2
-          AND status = 'pendente'
-        LIMIT 1`,
-      [partida_id, usuario_id]
-    );
-    return rows.length > 0;
+  async existsAny(partida_id, usuario_id) {
+    const q = `
+    SELECT 1
+    FROM public.convite
+    WHERE partida_id = $1 AND usuario_id = $2
+    LIMIT 1
+  `;
+    const { rows } = await db.query(q, [partida_id, usuario_id]);
+    return !!rows[0];
   },
 
-  async cancelByCreator(convite_id, criador_id) {
-    const { rows } = await db.query(
-      `UPDATE convite c
-          SET status = 'cancelado'
-        FROM partida p
-       WHERE c.id = $1
-         AND p.id = c.partida_id
-         AND p.usuario_criador_id = $2
-         AND c.status = 'pendente'
-       RETURNING c.*`,
-      [convite_id, criador_id]
-    );
-    return rows[0] ?? null;
+  async create({ partida_id, usuario_id, status }) {
+    const q = `
+    INSERT INTO public.convite (usuario_id, partida_id, status)
+    VALUES ($1, $2, $3)
+    RETURNING id, usuario_id, partida_id, status
+  `;
+    const { rows } = await db.query(q, [usuario_id, partida_id, status]);
+    return rows[0];
   },
 
-  async acceptByUser(convite_id, usuario_id) {
-    const { rows } = await db.query(
-      `UPDATE convite
-          SET status = 'aceito'
-        WHERE id = $1
-          AND usuario_id = $2
-          AND status = 'pendente'
-        RETURNING *`,
-      [convite_id, usuario_id]
-    );
-    return rows[0] ?? null;
+  async findPending(partida_id, usuario_id) {
+    const q = `
+    SELECT id, usuario_id, partida_id, status
+    FROM public.convite
+    WHERE partida_id = $1 AND usuario_id = $2 AND status = 'pendente'
+    LIMIT 1
+  `;
+    const { rows } = await db.query(q, [partida_id, usuario_id]);
+    return rows[0] || null;
   },
 
-  async declineByUser(convite_id, usuario_id) {
-    const { rows } = await db.query(
-      `UPDATE convite
-          SET status = 'recusado'
-        WHERE id = $1
-          AND usuario_id = $2
-          AND status = 'pendente'
-        RETURNING *`,
-      [convite_id, usuario_id]
-    );
-    return rows[0] ?? null;
+  async updateStatus(id, status) {
+    const q = `
+    UPDATE public.convite
+    SET status = $2
+    WHERE id = $1
+    RETURNING id, usuario_id, partida_id, status
+  `;
+    const { rows } = await db.query(q, [id, status]);
+    return rows[0] || null;
+  },
+
+  async ensureParticipante({ partida_id, jogador_id, confirmado, participou, nota }) {
+    const checkQ = `
+    SELECT id FROM public.partida_participante
+    WHERE partida_id = $1 AND jogador_id = $2
+    LIMIT 1
+  `;
+    const exists = await db.query(checkQ, [partida_id, jogador_id]);
+    if (exists.rows[0]) return exists.rows[0];
+
+    const insertQ = `
+    INSERT INTO public.partida_participante (partida_id, jogador_id, confirmado, participou, nota)
+    VALUES ($1, $2, $3, $4, $5)
+    RETURNING id, partida_id, jogador_id, confirmado, participou, nota
+  `;
+    const { rows } = await db.query(insertQ, [partida_id, jogador_id, confirmado, participou, nota]);
+    return rows[0];
+  },
+
+  async listByPartida(partida_id) {
+    const q = `
+    SELECT
+      c.id                AS convite_id,
+      c.partida_id,
+      c.usuario_id,
+      COALESCE(u.nome, '') AS nome,
+      COALESCE(u.foto_url, u.imagem_url, u.avatar_url, u.foto, u.imagem) AS imagem_url,
+      c.status
+    FROM public.convite c
+    JOIN public.usuario u ON u.id = c.usuario_id
+    WHERE c.partida_id = $1
+    ORDER BY c.id DESC
+  `;
+    const { rows } = await db.query(q, [partida_id]);
+    return rows;
   }
 };
