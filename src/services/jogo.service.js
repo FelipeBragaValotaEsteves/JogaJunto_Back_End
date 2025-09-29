@@ -1,7 +1,7 @@
 import { JogoModel } from '../models/jogo.model.js';
 
 export const JogoService = {
-    
+
     async criarJogo({ partidaId, solicitanteId }) {
         const partida = await JogoModel.getPartidaById(partidaId);
         if (!partida) return 'not_found_partida';
@@ -35,5 +35,12 @@ export const JogoService = {
         await JogoModel.deleteTimesByJogoId(jogoId);
         await JogoModel.deleteJogo(jogoId);
         return 'ok';
+    },
+
+    async obterJogo({ jogoId, solicitanteId }) {
+        const jogo = await JogoModel.aggregateResumoPorJogo(jogoId);
+        if (!jogo) return 'not_found_jogo';
+
+        return jogo;
     },
 };
