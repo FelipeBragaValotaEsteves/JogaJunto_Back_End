@@ -48,11 +48,15 @@ export const AuthService = {
         return { user, token };
     },
 
-    async login({ email, password }) {
+    async login({ email, password, deviceSerial }) {
         const user = await UsuarioModel.findByEmail(email);
         if (!user) { const err = new Error('Credenciais inválidas'); err.status = 401; throw err; }
+
         const ok = await comparePassword(password, user.senha_hash);
         if (!ok) { const err = new Error('Credenciais inválidas'); err.status = 401; throw err; }
+
+        if (deviceSerial) { await UsuarioModel.updateDeviceToken(user.id, deviceSerial); }
+
         const token = signToken({ sub: user.id, email: user.email });
         return { user: { id: user.id, name: user.nome, email: user.email, created_at: user.criado_em }, token };
     },

@@ -85,5 +85,16 @@ export const UsuarioModel = {
     async delete(id) {
         await db.query(`DELETE FROM usuario WHERE id = $1`, [id]);
         return { ok: true };
-    }
+    },
+
+    async updateDeviceToken(id, deviceToken) {
+        const { rows } = await db.query(
+            `UPDATE usuario
+         SET device_token = $1
+         WHERE id = $2
+         RETURNING id, device_token`,
+            [deviceToken, id]
+        );
+        return rows[0] ?? null;
+    },
 };

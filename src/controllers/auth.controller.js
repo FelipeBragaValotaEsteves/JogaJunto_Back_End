@@ -9,7 +9,8 @@ const registerSchema = z.object({
 
 const loginSchema = z.object({
   email: z.string().email(),
-  password: z.string().min(6)
+  password: z.string().min(6),
+  deviceSerial: z.string().optional()
 });
 
 export const AuthController = {
@@ -24,8 +25,10 @@ export const AuthController = {
   async login(req, res, next) {
     try {
       const data = loginSchema.parse(req.body);
+
       const result = await AuthService.login(data);
-      res.json(result);
+
+      res.status(200).json(result);
     } catch (err) { next(err); }
   },
 
