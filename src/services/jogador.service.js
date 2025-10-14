@@ -29,15 +29,14 @@ export const JogadorService = {
         return { participante_id: participante.id, jogador_id: jId };
     },
 
-    async listarJogadoresDisponiveis() {
-        const jogadores = await JogadorModel.findAll();
+    async listarJogadoresDisponiveis(partidaId, nome) {
+        const jogadores = await JogadorModel.findAllDisponiveisByPartida(partidaId, nome);
         return jogadores;
     },
     
-    async listarJogadoresDisponiveisPorPartida(partida_id) {
-        const jogadores = await JogadorModel.findAll();
-        return jogadores.filter(jogador => jogador.partida_id === partida_id);
-    
+    async listarPorPartida(partidaId) {
+        const jogadores = await JogadorModel.findAllByPartida(partidaId);
+        return jogadores;
     }
 }
 

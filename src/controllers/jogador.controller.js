@@ -25,17 +25,19 @@ export const JogadorController = {
 
     async listarJogadoresDisponiveis(req, res) {
         try {
-            const jogadores = await JogadorService.listarJogadoresDisponiveis();
+            const { partidaId } = req.params; 
+            const { nome } = req.query; 
+            const jogadores = await JogadorService.listarJogadoresDisponiveis(partidaId, nome);
             return res.status(200).json(jogadores);
         } catch (e) {
             return res.status(400).json({ message: e.message || 'Erro ao listar jogadores disponíveis.' });
         }
     },
 
-    async listarJogadoresDisponiveisPorPartida(req, res) {
+    async listarPorPartida(req, res) {
         try {
-            const { id } = req.params;
-            const jogadores = await JogadorService.listarJogadoresDisponiveisPorPartida(id);
+            const { partidaId } = req.params;
+            const jogadores = await JogadorService.listarPorPartida(partidaId);
             return res.status(200).json(jogadores);
         } catch (e) {
             return res.status(400).json({ message: e.message || 'Erro ao listar jogadores disponíveis.' });

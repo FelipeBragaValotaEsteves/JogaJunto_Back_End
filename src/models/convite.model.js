@@ -39,6 +39,18 @@ export const ConviteModel = {
     return rows[0] || null;
   },
 
+  async findPendingById(id) {
+    const q = `
+    SELECT c.id, c.usuario_id, c.partida_id, c.status, p.usuario_criador_id
+    FROM public.convite c
+    INNER JOIN public.partida p ON p.id = c.partida_id
+    WHERE c.id = $1 AND c.status = 'pendente'
+    LIMIT 1
+  `;
+    const { rows } = await db.query(q, [id]);
+    return rows[0] || null;
+  },
+
   async updateStatus(id, status) {
     const q = `
     UPDATE public.convite
@@ -83,6 +95,20 @@ export const ConviteModel = {
     ORDER BY c.id DESC
   `;
     const { rows } = await db.query(q, [partida_id]);
+    return rows;
+  },
+
+  async listByUsuario(usuario_id) {
+    const q = `
+    SELECT
+      c.id AS convite_id,
+      c.partida_id,
+      c.status
+    FROM public.convite c
+    WHERE c.usuario_id = $1
+    ORDER BY c.id DESC
+  `;
+    const { rows } = await db.query(q, [usuario_id]);
     return rows;
   }
 };

@@ -5,9 +5,10 @@ import { ConviteController } from '../controllers/convite.controller.js';
 const router = Router();
 
 router.post('/', requireAuth, ConviteController.criar);
-router.post('/:id/cancelar', requireAuth, ConviteController.cancelar);
-router.post('/:id/aceitar', requireAuth, ConviteController.aceitar);
-router.post('/:id/recusar', requireAuth, ConviteController.recusar);
+router.put('/cancelar/:id', requireAuth, ConviteController.cancelar);
+router.put('/aceitar/:id', requireAuth, ConviteController.aceitar);
+router.put('/recusar/:id', requireAuth, ConviteController.recusar);
 router.get('/partida/:partidaId', requireAuth, ConviteController.listarPorPartida);
+router.get('/usuario/:usuarioId', requireAuth, ConviteController.listarPorUsuario);
 
 export default router;

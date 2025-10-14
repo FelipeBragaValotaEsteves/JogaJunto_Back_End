@@ -82,11 +82,15 @@ export const JogoModel = {
           COALESCE(tp.cartao_amarelo, 0) AS cartao_amarelo,
           COALESCE(tp.cartao_vermelho, 0) AS cartao_vermelho,
 
-          jg.nome AS jogador_nome
+          jg.nome AS jogador_nome,
+
+          u.img as foto
+
         FROM public.partida_jogo j
         JOIN public.partida_jogo_time t ON t.partida_jogo_id = j.id
         LEFT JOIN public.partida_jogo_time_participante tp ON tp.partida_jogo_time_id = t.id
-        LEFT JOIN public.jogador jg ON jg.id = tp.jogador_id
+        LEFT JOIN public.jogador jg ON jg.id = tp.jogador_id 
+        LEFT JOIN public.usuario u ON u.id = jg.usuario_id 
         JOIN time_totais tt ON tt.time_id = t.id AND tt.jogo_id = j.id
         WHERE j.id = $1 
         ORDER BY t.id, tp.id NULLS LAST

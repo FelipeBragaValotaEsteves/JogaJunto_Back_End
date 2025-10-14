@@ -14,45 +14,49 @@ export const ConviteService = {
     return created;
   },
 
-  async aceitar({ partida_id, usuario_id }) {
-    const pending = await ConviteModel.findPending(partida_id, usuario_id);
+  async aceitar({id, authUserId}) {
+    const pending = await ConviteModel.findPendingById(id);
     if (!pending) return 'not_found';
 
-    const updated = await ConviteModel.updateStatus(pending.id, 'aceito');
+    if (pending.usuario_id !== authUserId) {
+      return 'forbidden';
+    }
 
-    const jogador = await JogadorModel.createUsuarioJogador({ usuario_id, nome: null });
-    await ConviteModel.ensureParticipante({
-      partida_id,
-      jogador_id: jogador.id,
-      confirmado: false,
-      participou: false,
-      nota: null,
-    });
+    const updated = await ConviteModel.updateStatus(pending.id, 'aceito');
 
     return { convite: updated };
   },
 
-  async recusar({ partida_id, usuario_id }) {
-    const pending = await ConviteModel.findPending(partida_id, usuario_id);
+  async recusar({id, authUserId}) {
+    const pending = await ConviteModel.findPendingById(id);
     if (!pending) return 'not_found';
+
+    if (pending.usuario_id !== authUserId) {
+      return 'forbidden';
+    }
 
     const updated = await ConviteModel.updateStatus(pending.id, 'recusado');
     return { convite: updated };
   },
 
-  async cancelar({ partida_id, usuario_id, solicitante_id }) {
-    const partida = await ConviteModel.getPartidaById(partida_id);
-    if (!partida) return 'not_found_partida';
-    if (partida.usuario_criador_id !== solicitante_id) return 'forbidden';
-
-    const pending = await ConviteModel.findPending(partida_id, usuario_id);
+  async cancelar({id, solicitanteId}) {
+    
+    const pending = await ConviteModel.findPendingById(id);
     if (!pending) return 'not_found';
+
+    if (pending.usuario_criador_id !== solicitanteId) {
+      return 'forbidden';
+    }
 
     const updated = await ConviteModel.updateStatus(pending.id, 'cancelado');
     return { convite: updated };
   },
 
-   async listarPorPartida({ partida_id }) {
-    return await ConviteModel.listByPartida(partida_id);
+   async listarPorPartida({partidaId}) {
+    return await ConviteModel.listByPartida(partidaId);
   },
+
+  async listarPorUsuario({usuarioId}) {
+    return await ConviteModel.listByUsuario(usuarioId);
+  }
 };
