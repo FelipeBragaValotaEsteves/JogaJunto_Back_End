@@ -56,7 +56,7 @@ export const ConviteService = {
     return await ConviteModel.listByPartida(partidaId);
   },
 
-  async listarPorUsuario({usuarioId}) {
+  async listarPorUsuario(usuarioId) {
     return await ConviteModel.listByUsuario(usuarioId);
   }
 };

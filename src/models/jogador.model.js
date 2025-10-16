@@ -44,21 +44,37 @@ export const JogadorModel = {
     async findAllDisponiveisByPartida(partida_id, nome) {
         const q = `
             SELECT
-            j.id,
-            j.nome,
-            u.img AS foto,
-            COALESCE(ARRAY_AGG(DISTINCT p.nome) FILTER (WHERE p.nome IS NOT NULL), '{}') AS posicoes
-            FROM
-            public.jogador j
-            LEFT JOIN public.partida_participante pp ON j.id = pp.jogador_id AND pp.partida_id = $1
-            LEFT JOIN public.convite c ON j.usuario_id = c.usuario_id AND c.partida_id = $1 AND c.status = 'aceito'
-            LEFT JOIN public.usuario u ON j.usuario_id = u.id
-            LEFT JOIN public.usuario_posicao up ON u.id = up.usuario_id
-            LEFT JOIN public.posicao p ON p.id = up.posicao_id
-            WHERE pp.id IS NULL AND c.id IS NULL
-            ${nome ? "AND j.nome ILIKE $2" : ""}
-            GROUP BY j.id, j.nome, u.img 
-            ORDER BY j.nome ASC;
+                j.usuario_id AS id,
+                j.id AS id_jogador,
+                j.nome,
+                u.img AS foto,
+                COALESCE(
+                  ARRAY_AGG(DISTINCT p.nome) FILTER (WHERE p.nome IS NOT NULL), 
+                  '{}'
+                ) AS posicoes
+            FROM public.jogador j
+            LEFT JOIN public.partida_participante pp 
+                ON j.id = pp.jogador_id 
+                AND pp.partida_id = $1
+            LEFT JOIN public.convite c 
+                ON j.usuario_id = c.usuario_id 
+                AND c.partida_id = $1
+            LEFT JOIN public.usuario u 
+                ON j.usuario_id = u.id
+            LEFT JOIN public.usuario_posicao up 
+                ON u.id = up.usuario_id
+            LEFT JOIN public.posicao p 
+                ON p.id = up.posicao_id
+            JOIN public.partida pa 
+                ON pa.id = $1
+            WHERE 
+                pp.id IS NULL 
+                AND (c.id IS NULL OR c.status NOT IN ('aceito', 'pendente'))
+                AND j.usuario_id <> pa.usuario_criador_id
+            GROUP BY 
+                j.usuario_id, j.id, j.nome, u.img 
+            ORDER BY 
+                j.nome ASC;
         `;
         const params = nome ? [partida_id, `%${nome}%`] : [partida_id];
         const { rows } = await db.query(q, params);

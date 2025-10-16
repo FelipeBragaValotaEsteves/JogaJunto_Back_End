@@ -76,10 +76,11 @@ export const ConviteController = {
   async listarPorUsuario(req, res) {
     try {
       const { usuarioId } = req.params;
+      
       const data = await ConviteService.listarPorUsuario(Number(usuarioId));
       return res.status(200).json(data);
-    } catch {
-      return res.status(500).json({ message: 'Erro ao listar convites.' });
+    } catch (error) {
+      return res.status(500).json({ message: 'Erro ao listar convites.' + error });
     }
   },
 };

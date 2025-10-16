@@ -103,8 +103,13 @@ export const ConviteModel = {
     SELECT
       c.id AS convite_id,
       c.partida_id,
-      c.status
+      c.status,
+      p.id AS partida_id,
+      p.local,
+      p.data,
+      p.hora_inicio
     FROM public.convite c
+    JOIN public.partida p ON p.id = c.partida_id
     WHERE c.usuario_id = $1
     ORDER BY c.id DESC
   `;
