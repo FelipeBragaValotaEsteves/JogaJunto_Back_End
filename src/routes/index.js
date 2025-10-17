@@ -11,7 +11,7 @@ import jogadorRoutes from './jogador.routes.js';
 import jogoRoutes from './jogo.routes.js';
 import timeRoutes from './time.routes.js';
 import timeParticipanteRoutes from './timeParticipante.routes.js';
-import notificationRoutes from './notification.routes.js';
+import notificacaosRoutes from './notificacao.routes.js';
 
 const router = Router();
 
@@ -27,7 +27,7 @@ router.use('/jogadores', jogadorRoutes);
 router.use('/jogos', jogoRoutes);
 router.use('/times', timeRoutes);
 router.use('/time-participantes', timeParticipanteRoutes);
-router.use('/notificacoes', notificationRoutes);
+router.use('/notificacoes', notificacaosRoutes);
 
 
 export default router;

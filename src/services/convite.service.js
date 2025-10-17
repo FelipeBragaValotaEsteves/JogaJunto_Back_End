@@ -1,5 +1,4 @@
 import { ConviteModel } from '../models/convite.model.js';
-import { JogadorModel } from '../models/jogador.model.js';
 
 export const ConviteService = {
   async criar({ partida_id, usuario_id, solicitante_id }) {

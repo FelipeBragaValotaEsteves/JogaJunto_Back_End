@@ -97,4 +97,12 @@ export const UsuarioModel = {
         );
         return rows[0] ?? null;
     },
+
+    async getDeviceToken(id) {
+        const { rows } = await db.query(
+            `SELECT device_token FROM usuario WHERE id = $1`,
+            [id]
+        );
+        return rows[0]?.device_token ?? null;
+    },
 };

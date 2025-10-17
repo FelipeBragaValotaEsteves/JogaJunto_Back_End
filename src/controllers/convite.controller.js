@@ -1,4 +1,6 @@
 import { ConviteService } from '../services/convite.service.js';
+import { NotificacaoService } from '../services/notificacao.service.js';
+import { PartidaModel } from '../models/partida.model.js';
 
 export const ConviteController = {
   async criar(req, res) {
@@ -11,6 +13,28 @@ export const ConviteController = {
       if (result === 'forbidden') return res.status(403).json({ message: 'Apenas o organizador pode convidar.' });
       if (result === 'conflict') return res.status(409).json({ message: 'Já existe convite para este usuário.' });
       if (result === 'not_found') return res.status(404).json({ message: 'Partida não encontrada.' });
+
+      try {
+        const partidaDetalhada = await PartidaModel.findByIdDetailed(partida_id);
+        
+        if (partidaDetalhada) {
+          const dataFormatada = new Date(partidaDetalhada.data).toLocaleDateString('pt-BR');
+          const horaFormatada = partidaDetalhada.hora_inicio;
+          
+          await NotificacaoService.sendNotification({
+            usuario_id: usuario_id,
+            title: 'Novo convite para partida!',
+            body: `Você foi convidado para uma partida de ${partidaDetalhada.tipo_partida_nome || 'futebol'} em ${partidaDetalhada.local} no dia ${dataFormatada} às ${horaFormatada}`,
+            data: {
+              tipo: 'convite_partida',
+              convite_id: result.id,
+              partida_id: partida_id
+            }
+          });
+        }
+      } catch (notificationError) {
+        console.error('Erro ao enviar notificação de convite:', notificationError);
+      }
 
       return res.status(201).json(result);
     } catch {

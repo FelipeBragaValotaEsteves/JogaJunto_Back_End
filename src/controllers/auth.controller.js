@@ -10,7 +10,7 @@ const registerSchema = z.object({
 const loginSchema = z.object({
   email: z.string().email(),
   password: z.string().min(6),
-  deviceSerial: z.string().optional()
+  deviceSerial: z.string().nullable().optional().transform(val => val === null ? undefined : val)
 });
 
 export const AuthController = {
