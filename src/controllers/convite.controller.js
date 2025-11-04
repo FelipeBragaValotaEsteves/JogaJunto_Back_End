@@ -1,6 +1,7 @@
 import { ConviteService } from '../services/convite.service.js';
 import { NotificacaoService } from '../services/notificacao.service.js';
 import { PartidaModel } from '../models/partida.model.js';
+import { UsuarioModel } from '../models/usuario.model.js';
 
 export const ConviteController = {
   async criar(req, res) {
@@ -50,6 +51,29 @@ export const ConviteController = {
       const result = await ConviteService.aceitar({id, authUserId});
       if (result === 'not_found') return res.status(404).json({ message: 'Convite pendente não encontrado.' });
 
+      try {
+        const partidaDetalhada = await PartidaModel.findByIdDetailed(result.convite.partida_id);
+        const usuarioAceitou = await UsuarioModel.findById(authUserId);
+        
+        if (partidaDetalhada && usuarioAceitou) {
+          const dataFormatada = new Date(partidaDetalhada.data).toLocaleDateString('pt-BR');
+          const horaFormatada = partidaDetalhada.hora_inicio;
+          
+          await NotificacaoService.sendNotification({
+            usuario_id: partidaDetalhada.usuario_criador_id,
+            title: 'Convite aceito!',
+            body: `${usuarioAceitou.nome} aceitou o convite para a partida de ${partidaDetalhada.tipo_partida_nome || 'futebol'} em ${partidaDetalhada.local} no dia ${dataFormatada} às ${horaFormatada}`,
+            data: {
+              tipo: 'convite_aceito',
+              partida_id: result.convite.partida_id,
+              usuario_id: authUserId
+            }
+          });
+        }
+      } catch (notificationError) {
+        console.error('Erro ao enviar notificação de convite aceito:', notificationError);
+      }
+
       return res.status(200).json(result);
     } catch {
       return res.status(500).json({ message: 'Erro ao aceitar convite.' });
@@ -63,6 +87,29 @@ export const ConviteController = {
 
       const result = await ConviteService.recusar({id, authUserId});
       if (result === 'not_found') return res.status(404).json({ message: 'Convite pendente não encontrado.' });
+
+      try {
+        const partidaDetalhada = await PartidaModel.findByIdDetailed(result.convite.partida_id);
+        const usuarioRecusou = await UsuarioModel.findById(authUserId);
+        
+        if (partidaDetalhada && usuarioRecusou) {
+          const dataFormatada = new Date(partidaDetalhada.data).toLocaleDateString('pt-BR');
+          const horaFormatada = partidaDetalhada.hora_inicio;
+          
+          await NotificacaoService.sendNotification({
+            usuario_id: partidaDetalhada.usuario_criador_id,
+            title: 'Convite recusado',
+            body: `${usuarioRecusou.nome} recusou o convite para a partida de  ${partidaDetalhada.tipo_partida_nome || 'futebol'} em ${partidaDetalhada.local} no dia ${dataFormatada} às ${horaFormatada}`,
+            data: {
+              tipo: 'convite_recusado',
+              partida_id: result.convite.partida_id,
+              usuario_id: authUserId
+            }
+          });
+        }
+      } catch (notificationError) {
+        console.error('Erro ao enviar notificação de convite recusado:', notificationError);
+      }
 
       return res.status(200).json(result);
     } catch {

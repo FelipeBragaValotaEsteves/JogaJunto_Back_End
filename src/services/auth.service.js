@@ -1,4 +1,5 @@
 import { UsuarioModel } from '../models/usuario.model.js';
+import { JogadorModel } from '../models/jogador.model.js';
 import { hashPassword, comparePassword } from '../utils/hash.util.js';
 import { signToken } from '../utils/token.util.js';
 import { PasswordResetModel } from '../models/passwordReset.model.js';

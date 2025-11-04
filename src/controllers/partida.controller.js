@@ -118,14 +118,4 @@ export const PartidaController = {
       return res.status(500).json({ message: 'Erro ao listar resumo por partida.' });
     }
   },
-
-  // async listarDetalhadoPorPartida(req, res) {
-  //   try {
-  //     const { partidaId } = req.params;
-  //     const data = await PartidaService.listarDetalhadoPorPartida({ partidaId: Number(partidaId) });
-  //     return res.status(200).json(data);
-  //   } catch {
-  //     return res.status(500).json({ message: 'Erro ao listar detalhado por partida.' });
-  //   }
-  // }
 };

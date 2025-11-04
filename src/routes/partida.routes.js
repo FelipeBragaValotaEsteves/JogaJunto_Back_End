@@ -13,6 +13,5 @@ router.get('/jogada/:userId', requireAuth, PartidaController.getPlayedByUserId);
 router.get('/:id', requireAuth, PartidaController.getById);
 router.get('/proximas/:city', requireAuth, PartidaController.getByCityName);
 router.get('/resumo/:partidaId', requireAuth, PartidaController.listarResumoPorPartida);
-// router.get('/resumo/completo/:partidaId', requireAuth, PartidaController.listarDetalhadoPorPartida);
 
 export default router;

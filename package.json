@@ -7,7 +7,9 @@
         "dev": "nodemon src/server.js",
         "start": "node src/server.js",
         "vercel-dev": "vercel dev",
-        "test": "jest"
+        "test": "vitest",
+        "test:run": "vitest run",
+        "test:watch": "vitest --watch"
     },
     "engines": {
         "node": ">=18"
@@ -26,7 +28,7 @@
     },
     "devDependencies": {
         "nodemon": "^3.1.0",
-        "supertest": "^7.0.0",
-        "vitest": "^2.0.5"
+        "supertest": "^7.1.4",
+        "vitest": "^2.1.9"
     }
 }

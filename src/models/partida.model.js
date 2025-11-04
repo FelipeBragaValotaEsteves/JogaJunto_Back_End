@@ -107,28 +107,7 @@ export const PartidaModel = {
     );
     return rows;
   },
-
-  // async aggregateResumoPorPartida(partidaId) {
-  //   const q = `
-  //   SELECT
-  //     j.id  AS jogo_id,
-  //     t.id  AS time_id,
-  //     t.nome AS time_nome,
-  //     COALESCE(SUM(COALESCE(tp.gol, 0)), 0)               AS gols,
-  //     COALESCE(SUM(COALESCE(tp.assistencia, 0)), 0)       AS assistencias,
-  //     COALESCE(SUM(COALESCE(tp.cartao_amarelo, 0)), 0)    AS cartoes_amarelos,
-  //     COALESCE(SUM(COALESCE(tp.cartao_vermelho, 0)), 0)   AS cartoes_vermelhos
-  //   FROM public.partida_jogo j
-  //   JOIN public.partida_jogo_time t ON t.partida_jogo_id = j.id
-  //   LEFT JOIN public.partida_jogo_time_participante tp ON tp.partida_jogo_time_id = t.id
-  //   WHERE j.partida_id = $1
-  //   GROUP BY j.id, t.id, t.nome
-  //   ORDER BY j.id, t.id
-  // `;
-  //   const { rows } = await db.query(q, [partidaId]);
-  //   return rows;
-  // },
-
+  
   async aggregateResumoPorPartida(partidaId) {
     const q = `
     WITH time_totais AS (
