@@ -55,11 +55,11 @@ export const TimeParticipanteModel = {
     const q = `
     INSERT INTO public.partida_jogo_time_participante
       (partida_jogo_time_id, jogador_id, posicao_id, gol, assistencia, defesa, cartao_amarelo, cartao_vermelho)
-    VALUES ($1, $2, $3, NULL, NULL, NULL, NULL, NULL)
+    VALUES ($1, $2, NULL, NULL, NULL, NULL, NULL, NULL)
     RETURNING id, partida_jogo_time_id AS "timeId", jogador_id AS "jogadorId", posicao_id AS "posicaoId",
               gol, assistencia, defesa, cartao_amarelo AS "cartaoAmarelo", cartao_vermelho AS "cartaoVermelho"
   `;
-    const { rows } = await db.query(q, [timeId, jogadorId, posicaoId]);
+    const { rows } = await db.query(q, [timeId, jogadorId]);
     return rows[0];
   },
 

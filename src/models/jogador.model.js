@@ -2,14 +2,30 @@ import { db } from '../config/database.js';
 
 export const JogadorModel = {
     async createUsuarioJogador({ usuario_id, nome }) {
-        const q = `
+        const checkQ = `
+            SELECT id, tipo, usuario_id, nome, posicao 
+            FROM public.jogador 
+            WHERE usuario_id = $1
+        `;
+        const existing = await db.query(checkQ, [usuario_id]);
+        
+        if (existing.rows[0]) {
+            const updateQ = `
+                UPDATE public.jogador 
+                SET nome = COALESCE($2, nome)
+                WHERE usuario_id = $1
+                RETURNING id, tipo, usuario_id, nome, posicao
+            `;
+            const { rows } = await db.query(updateQ, [usuario_id, nome]);
+            return rows[0];
+        }
+        
+        const insertQ = `
             INSERT INTO public.jogador (tipo, usuario_id, nome)
             VALUES ('usuario', $1, $2)
-            ON CONFLICT (usuario_id)
-            DO UPDATE SET nome = COALESCE(EXCLUDED.nome, public.jogador.nome)
             RETURNING id, tipo, usuario_id, nome, posicao
         `;
-        const { rows } = await db.query(q, [usuario_id, nome]);
+        const { rows } = await db.query(insertQ, [usuario_id, nome]);
         return rows[0];
     },
 

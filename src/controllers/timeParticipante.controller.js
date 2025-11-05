@@ -5,7 +5,6 @@ export const TimeParticipanteController = {
     try {
       const solicitanteId = req.user?.id;
       const { timeId, jogadorId, posicaoId } = req.body;
-
       const out = await TimeParticipanteService.adicionarJogadorAoTime({
         timeId: Number(timeId),
         jogadorId: Number(jogadorId),
@@ -20,14 +19,16 @@ export const TimeParticipanteController = {
       if (out === 'conflict') return res.status(409).json({ message: 'Jogador já está neste time.' });
 
       return res.status(201).json(out); 
-    } catch {
-      return res.status(500).json({ message: 'Erro ao adicionar jogador ao time.' });
+    } catch (error){
+      return res.status(500).json({ message: 'Erro ao adicionar jogador ao time.' + error.message });
     }
   },
 
   async atualizarEstatisticas(req, res) {
     try {
       const solicitanteId = req.user?.id;
+      console.log(solicitanteId);
+      
       const { timeParticipanteId } = req.params;
       const payload = req.body;
 

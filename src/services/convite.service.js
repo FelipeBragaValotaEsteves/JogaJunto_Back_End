@@ -1,4 +1,5 @@
 import { ConviteModel } from '../models/convite.model.js';
+import { JogadorModel } from '../models/jogador.model.js';
 
 export const ConviteService = {
   async criar({ partida_id, usuario_id, solicitante_id }) {
@@ -22,6 +23,19 @@ export const ConviteService = {
     }
 
     const updated = await ConviteModel.updateStatus(pending.id, 'aceito');
+
+    const jogador = await JogadorModel.createUsuarioJogador({ 
+      usuario_id: authUserId, 
+      nome: null 
+    });
+
+    await JogadorModel.ensureParticipante({
+      partida_id: pending.partida_id,
+      jogador_id: jogador.id,
+      confirmado: true,
+      participou: false,
+      nota: null,
+    });
 
     return { convite: updated };
   },

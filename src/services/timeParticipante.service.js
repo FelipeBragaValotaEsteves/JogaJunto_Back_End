@@ -2,12 +2,11 @@ import { TimeParticipanteModel } from '../models/timeParticipante.model.js';
 
 export const TimeParticipanteService = {
   async adicionarJogadorAoTime({ timeId, jogadorId, posicaoId, solicitanteId }) {
-    if (!timeId || !jogadorId || !posicaoId) return 'bad_request';
+    if (!timeId || !jogadorId) return 'bad_request';
 
     const partidaInfo = await TimeParticipanteModel.getPartidaInfoByTimeId(timeId);
     if (!partidaInfo) return 'not_found_time';
     if (partidaInfo.usuario_criador_id !== solicitanteId) return 'forbidden';
-
     const isParticipante = await TimeParticipanteModel.jogadorEstaNaPartida(partidaInfo.partida_id, jogadorId);
     if (!isParticipante) return 'not_participante';
 
@@ -28,6 +27,8 @@ export const TimeParticipanteService = {
     if (!tp) return 'not_found_tp';
 
     const partidaInfo = await TimeParticipanteModel.getPartidaInfoByTimeParticipanteId(timeParticipanteId);
+    console.log(partidaInfo, solicitanteId);
+    
     if (!partidaInfo || partidaInfo.usuario_criador_id !== solicitanteId) return 'forbidden';
 
     const fields = {};
