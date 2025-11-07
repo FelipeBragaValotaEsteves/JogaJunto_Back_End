@@ -40,6 +40,7 @@ export const TimeParticipanteModel = {
   },
 
   async jogadorEstaNaPartida(partida_id, jogador_id) {
+    console.log('Verificando se jogador', jogador_id, 'está na partida', partida_id);
     const q = `
     SELECT 1
     FROM public.partida_participante 

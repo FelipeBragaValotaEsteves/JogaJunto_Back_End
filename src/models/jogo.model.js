@@ -8,6 +8,17 @@ export const JogoModel = {
         return rows[0] || null;
     },
 
+    async getPartidaIdByJogoId(jogo_id) {
+        const q = `
+            SELECT p.id
+            FROM public.partida_jogo j
+            JOIN public.partida p ON p.id = j.partida_id
+            WHERE j.id = $1
+        `;
+        const { rows } = await db.query(q, [jogo_id]);
+        return rows[0] ? rows[0].id : null;
+    },
+
     async createJogo(partida_id) {
         const q = `
             INSERT INTO public.partida_jogo (partida_id)

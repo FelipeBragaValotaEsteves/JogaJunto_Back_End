@@ -5,6 +5,7 @@ export const TimeParticipanteController = {
     try {
       const solicitanteId = req.user?.id;
       const { timeId, jogadorId } = req.body;
+
       const out = await TimeParticipanteService.adicionarJogadorAoTime({
         timeId: Number(timeId),
         jogadorId: Number(jogadorId),

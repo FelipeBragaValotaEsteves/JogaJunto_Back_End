@@ -34,13 +34,12 @@ export const JogadorService = {
         return jogadores;
     },
 
-    async listarJogadoresDisponiveisPorJogo(jogoId, nome) {
+    async listarJogadoresDisponiveisPorJogo(jogoId) {
 
         const jogo = await JogoModel.findJogoById(jogoId);
-
         if (!jogo) { const err = new Error('Jogo não encontrado'); err.status = 404; throw err; }
 
-        const jogadores = await JogadorModel.findAllDisponiveisByJogo(partidaId, jogoId, nome);
+        const jogadores = await JogadorModel.findAllDisponiveisByJogo(jogo.partida_id, jogoId);
         return jogadores;
     },
 

@@ -109,7 +109,7 @@ export const JogadorModel = {
         return rows;
     },
 
-    async findAllDisponiveisByJogo(partidaId, jogoId, nome) {
+    async findAllDisponiveisByJogo(partida_id, jogo_id) {
         const q = `
             SELECT
                 j.usuario_id AS id,
@@ -142,8 +142,8 @@ export const JogadorModel = {
             ORDER BY 
                 j.nome ASC;
         `;
-        const params = nome ? [partida_id, `%${nome}%`] : [partida_id];
-        const { rows } = await db.query(q, params);
+
+        const { rows } = await db.query(q, [partida_id, jogo_id]);
         return rows;
     },
 
@@ -153,7 +153,7 @@ export const JogadorModel = {
                 j.id,
                 j.nome,
                 u.img as foto,
-                COALESCE(lc.status, 'Inserido Manualmente') as status,
+                COALESCE(lc.status, 'manual') as status,
                 array_agg(DISTINCT p.nome) AS posicoes
             FROM public.jogador j
             LEFT JOIN LATERAL (
@@ -163,7 +163,7 @@ export const JogadorModel = {
                 ORDER BY c.id DESC
                 LIMIT 1
             ) lc ON true
-            LEFT JOIN public.partida_participante pp ON j.id = pp.jogador_id AND pp.partida_id = $1
+            INNER JOIN public.partida_participante pp ON j.id = pp.jogador_id AND pp.partida_id = $1
             LEFT JOIN public.usuario u ON j.usuario_id = u.id 
             LEFT JOIN public.usuario_posicao up ON u.id = up.usuario_id 
             LEFT JOIN public.posicao p ON p.id = up.posicao_id 
