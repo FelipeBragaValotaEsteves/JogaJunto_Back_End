@@ -150,8 +150,6 @@ describe('Testes do Módulo Convite', () => {
                 const result = await ConviteModel.ensureParticipante({
                     partida_id: 1,
                     jogador_id: 123,
-                    confirmado: true,
-                    participou: false,
                     nota: null
                 });
 
@@ -163,8 +161,6 @@ describe('Testes do Módulo Convite', () => {
                     id: 2, 
                     partida_id: 1, 
                     jogador_id: 123, 
-                    confirmado: true, 
-                    participou: false, 
                     nota: null 
                 };
                 db.query.mockResolvedValueOnce({ rows: [] });
@@ -173,8 +169,6 @@ describe('Testes do Módulo Convite', () => {
                 const result = await ConviteModel.ensureParticipante({
                     partida_id: 1,
                     jogador_id: 123,
-                    confirmado: true,
-                    participou: false,
                     nota: null
                 });
 

@@ -12,6 +12,7 @@ import jogoRoutes from './jogo.routes.js';
 import timeRoutes from './time.routes.js';
 import timeParticipanteRoutes from './timeParticipante.routes.js';
 import notificacaosRoutes from './notificacao.routes.js';
+import partidaParticipanteRoutes from './partida.participante.routes.js';
 
 const router = Router();
 
@@ -28,6 +29,7 @@ router.use('/jogos', jogoRoutes);
 router.use('/times', timeRoutes);
 router.use('/time-participantes', timeParticipanteRoutes);
 router.use('/notificacoes', notificacaosRoutes);
+router.use('/partida-participantes', partidaParticipanteRoutes);
 
 
 export default router;

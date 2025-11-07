@@ -31,9 +31,9 @@ describe('Testes de Integração das Rotas de Estado', () => {
     describe('GET /estado', () => {
         it('deve retornar lista de estados com sucesso', async () => {
             const mockEstados = [
-                { id: 1, nome: 'Acre', sigla: 'AC', created_at: '2024-01-01T00:00:00.000Z' },
-                { id: 2, nome: 'Alagoas', sigla: 'AL', created_at: '2024-01-01T00:00:00.000Z' },
-                { id: 3, nome: 'Bahia', sigla: 'BA', created_at: '2024-01-01T00:00:00.000Z' }
+                { id: 1, nome: 'Acre', sigla: 'AC' },
+                { id: 2, nome: 'Alagoas', sigla: 'AL' },
+                { id: 3, nome: 'Bahia', sigla: 'BA' }
             ];
 
             db.query.mockResolvedValue({ rows: mockEstados });

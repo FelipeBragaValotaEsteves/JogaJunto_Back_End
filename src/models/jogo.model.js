@@ -29,17 +29,6 @@ export const JogoModel = {
         return rows[0] || null;
     },
 
-    async updateJogo(id, nome) {
-        const q = `
-            UPDATE public.partida_jogo
-            SET nome = $2
-            WHERE id = $1
-            RETURNING id, nome
-        `;
-        const { rows } = await db.query(q, [id, nome]);
-        return rows[0] || null;
-    },
-
     async deleteTimesByJogoId(jogo_id) {
         await db.query(`DELETE FROM public.partida_jogo_time WHERE partida_jogo_id = $1`, [jogo_id]);
     },
@@ -62,6 +51,7 @@ export const JogoModel = {
           FROM public.partida_jogo j
           JOIN public.partida_jogo_time t ON t.partida_jogo_id = j.id
           LEFT JOIN public.partida_jogo_time_participante tp ON tp.partida_jogo_time_id = t.id
+          LEFT JOIN public.partida_participante pp ON pp.id = tp.partida_participante_id 
           WHERE j.id = $1
           GROUP BY j.id, t.id
         )
@@ -75,7 +65,7 @@ export const JogoModel = {
           tt.time_cartoes_vermelhos,
 
           tp.id AS time_participante_id,
-          tp.jogador_id,
+          pp.jogador_id,
           COALESCE(tp.gol, 0) AS gol,
           COALESCE(tp.assistencia, 0) AS assistencia,
           COALESCE(tp.defesa, 0) AS defesa,
@@ -83,13 +73,13 @@ export const JogoModel = {
           COALESCE(tp.cartao_vermelho, 0) AS cartao_vermelho,
 
           jg.nome AS jogador_nome,
-
           u.img as foto
 
         FROM public.partida_jogo j
         JOIN public.partida_jogo_time t ON t.partida_jogo_id = j.id
         LEFT JOIN public.partida_jogo_time_participante tp ON tp.partida_jogo_time_id = t.id
-        LEFT JOIN public.jogador jg ON jg.id = tp.jogador_id 
+        LEFT JOIN public.partida_participante pp ON pp.id = tp.partida_participante_id
+        LEFT JOIN public.jogador jg ON jg.id = pp.jogador_id 
         LEFT JOIN public.usuario u ON u.id = jg.usuario_id 
         JOIN time_totais tt ON tt.time_id = t.id AND tt.jogo_id = j.id
         WHERE j.id = $1 
@@ -126,6 +116,7 @@ export const JogoModel = {
                     timeParticipanteId: row.time_participante_id,
                     jogadorId: row.jogador_id,
                     nome: row.jogador_nome,
+                    foto: row.foto,
                     eventos: {
                         gol: row.gol,
                         assistencia: row.assistencia,

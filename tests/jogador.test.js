@@ -121,8 +121,6 @@ describe('Testes do Módulo Jogador', () => {
                 const resultado = await JogadorModel.ensureParticipante({
                     partida_id: 1,
                     jogador_id: 123,
-                    confirmado: true,
-                    participou: false,
                     nota: null
                 });
 
@@ -138,8 +136,6 @@ describe('Testes do Módulo Jogador', () => {
                 const resultado = await JogadorModel.ensureParticipante({
                     partida_id: 1,
                     jogador_id: 123,
-                    confirmado: true,
-                    participou: false,
                     nota: null
                 });
 
@@ -302,8 +298,6 @@ describe('Testes do Módulo Jogador', () => {
                 expect(JogadorModel.ensureParticipante).toHaveBeenCalledWith({
                     partida_id: 1,
                     jogador_id: 456,
-                    confirmado: false,
-                    participou: false,
                     nota: null
                 });
                 expect(resultado).toEqual({ participante_id: 1, jogador_id: 456 });

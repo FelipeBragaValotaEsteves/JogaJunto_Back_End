@@ -11,7 +11,7 @@ export const ConviteModel = {
     const q = `
     SELECT 1
     FROM public.convite
-    WHERE partida_id = $1 AND usuario_id = $2
+    WHERE partida_id = $1 AND usuario_id = $2 and status <> 'recusado'
     LIMIT 1
   `;
     const { rows } = await db.query(q, [partida_id, usuario_id]);
@@ -62,7 +62,7 @@ export const ConviteModel = {
     return rows[0] || null;
   },
 
-  async ensureParticipante({ partida_id, jogador_id, confirmado, participou, nota }) {
+  async ensureParticipante({ partida_id, jogador_id, nota }) {
     const checkQ = `
     SELECT id FROM public.partida_participante
     WHERE partida_id = $1 AND jogador_id = $2
@@ -72,11 +72,11 @@ export const ConviteModel = {
     if (exists.rows[0]) return exists.rows[0];
 
     const insertQ = `
-    INSERT INTO public.partida_participante (partida_id, jogador_id, confirmado, participou, nota)
-    VALUES ($1, $2, $3, $4, $5)
-    RETURNING id, partida_id, jogador_id, confirmado, participou, nota
+    INSERT INTO public.partida_participante (partida_id, jogador_id, nota)
+    VALUES ($1, $2, $3)
+    RETURNING id, partida_id, jogador_id, nota
   `;
-    const { rows } = await db.query(insertQ, [partida_id, jogador_id, confirmado, participou, nota]);
+    const { rows } = await db.query(insertQ, [partida_id, jogador_id, nota]);
     return rows[0];
   },
 

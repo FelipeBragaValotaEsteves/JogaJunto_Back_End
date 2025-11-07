@@ -9,7 +9,6 @@ const createSchema = z.object({
   bairro: z.string().max(150).optional(),
   numero: z.number().int().optional(),
   cidade_id: z.number().int().optional(),
-  aberto: z.boolean().optional(),
   data: z.preprocess(
     (v) => v === null || v === undefined ? null : toDate(v),
     z.date().optional().nullable()
@@ -30,7 +29,6 @@ const updateSchema = z.object({
   bairro: z.string().max(150).optional(),
   numero: z.number().int().optional(),
   cidade_id: z.number().int().optional(),
-  aberto: z.boolean().optional(),
   data: z.preprocess(
     (v) => v === null || v === undefined ? null : toDate(v),
     z.date().optional().nullable()

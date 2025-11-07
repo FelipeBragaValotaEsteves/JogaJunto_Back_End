@@ -1,26 +1,25 @@
 import { db } from '../config/database.js';
 
 const ALLOWED_UPDATE_FIELDS = [
-  'local', 'rua', 'bairro', 'numero', 'cidade_id',
-  'aberto', 'data', 'hora_inicio', 'hora_fim', 'tipo_partida_id', 'status', 'valor'
+  'local', 'rua', 'bairro', 'numero', 'cidade_id', 'data', 'hora_inicio', 'hora_fim', 'tipo_partida_id', 'status', 'valor'
 ];
 
 export const PartidaModel = {
   async create({
     local, rua = null, bairro = null, numero = null, cidade_id = null,
-    usuario_criador_id, aberto = false, data, hora_inicio, hora_fim = null,
+    usuario_criador_id, data, hora_inicio, hora_fim = null,
     tipo_partida_id, status, valor = null
   }) {
     const { rows } = await db.query(
       `INSERT INTO partida (
          local, rua, bairro, numero, cidade_id,
-         usuario_criador_id, aberto, data, hora_inicio, hora_fim,
+         usuario_criador_id, data, hora_inicio, hora_fim,
          tipo_partida_id, status, valor
-       ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12, $13)
+       ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)
        RETURNING *`,
       [
         local, rua, bairro, numero, cidade_id,
-        usuario_criador_id, aberto, data, hora_inicio, hora_fim,
+        usuario_criador_id, data, hora_inicio, hora_fim,
         tipo_partida_id, status, valor
       ]
     );
@@ -89,7 +88,9 @@ export const PartidaModel = {
     const { rows } = await db.query(
       `SELECT * FROM partida p 
        INNER JOIN partida_participante pp ON pp.partida_id = p.id 
-       WHERE pp.usuario_id = $1 and participou = true 
+       INNER JOIN jogador j ON j.id = pp.jogador_id 
+       INNER JOIN partida_jogo_time_participante tpp ON tpp.partida_participante_id = pp.id
+       WHERE j.usuario_id = $1  
       ORDER BY data DESC, hora_inicio DESC`,
       [userId]
     );
@@ -120,7 +121,8 @@ export const PartidaModel = {
         COALESCE(SUM(COALESCE(tp.cartao_vermelho, 0)), 0) AS time_cartoes_vermelhos
       FROM public.partida_jogo j
       JOIN public.partida_jogo_time t ON t.partida_jogo_id = j.id
-      LEFT JOIN public.partida_jogo_time_participante tp ON tp.partida_jogo_time_id = t.id
+      LEFT JOIN public.partida_jogo_time_participante tp ON tp.partida_jogo_time_id = t.id 
+      LEFT JOIN public.partida_participante pp ON pp.id = tp.partida_participante_id 
       WHERE j.partida_id = $1
       GROUP BY j.id, t.id
     )
@@ -134,7 +136,7 @@ export const PartidaModel = {
       tt.time_cartoes_vermelhos,
 
       tp.id AS time_participante_id,
-      tp.jogador_id,
+      pp.jogador_id,
       COALESCE(tp.gol, 0) AS gol,
       COALESCE(tp.assistencia, 0) AS assistencia,
       COALESCE(tp.defesa, 0) AS defesa,
@@ -145,7 +147,8 @@ export const PartidaModel = {
     FROM public.partida_jogo j
     JOIN public.partida_jogo_time t ON t.partida_jogo_id = j.id
     LEFT JOIN public.partida_jogo_time_participante tp ON tp.partida_jogo_time_id = t.id
-    LEFT JOIN public.jogador jg ON jg.id = tp.jogador_id
+    LEFT JOIN public.partida_participante pp ON pp.id = tp.partida_participante_id
+    LEFT JOIN public.jogador jg ON jg.id = pp.jogador_id
     JOIN time_totais tt ON tt.time_id = t.id AND tt.jogo_id = j.id
     WHERE j.partida_id = $1 
     ORDER BY j.id, t.id, tp.id NULLS LAST

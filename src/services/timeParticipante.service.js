@@ -1,7 +1,8 @@
 import { TimeParticipanteModel } from '../models/timeParticipante.model.js';
 
 export const TimeParticipanteService = {
-  async adicionarJogadorAoTime({ timeId, jogadorId, posicaoId, solicitanteId }) {
+  async adicionarJogadorAoTime({ timeId, jogadorId, solicitanteId }) {
+    
     if (!timeId || !jogadorId) return 'bad_request';
 
     const partidaInfo = await TimeParticipanteModel.getPartidaInfoByTimeId(timeId);
@@ -13,10 +14,11 @@ export const TimeParticipanteService = {
     const exists = await TimeParticipanteModel.existsInTime(timeId, jogadorId);
     if (exists) return 'conflict';
 
+    const partidaParticipanteId = await TimeParticipanteModel.getPartidaParticipanteId(partidaInfo.partida_id, jogadorId);
+
     const created = await TimeParticipanteModel.insertTimeParticipante({
       timeId,
-      jogadorId,
-      posicaoId,
+      partidaParticipanteId
     });
 
     return created;
@@ -43,5 +45,17 @@ export const TimeParticipanteService = {
 
     const updated = await TimeParticipanteModel.updateTimeParticipante(timeParticipanteId, fields);
     return updated;
+  },
+
+  async removerJogadorDoTime({ timeParticipanteId, solicitanteId }) {
+
+    const tp = await TimeParticipanteModel.findTimeParticipanteById(timeParticipanteId);
+    if (!tp) return 'not_found_tp';
+
+    const partidaInfo = await TimeParticipanteModel.getPartidaInfoByTimeParticipanteId(timeParticipanteId);
+    if (!partidaInfo || partidaInfo.usuario_criador_id !== solicitanteId) return 'forbidden';
+
+    await TimeParticipanteModel.deleteTimeParticipante(timeParticipanteId);
+    return 'ok';
   }
 };

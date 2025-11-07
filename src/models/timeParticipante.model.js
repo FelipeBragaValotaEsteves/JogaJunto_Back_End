@@ -2,6 +2,16 @@ import { db } from '../config/database.js';
 
 export const TimeParticipanteModel = {
 
+  async getPartidaParticipanteId(partida_id, jogador_id) {
+    const q = `
+    SELECT id FROM partida_participante
+    WHERE partida_id = $1 AND jogador_id = $2
+    LIMIT 1
+  `;
+    const { rows } = await db.query(q, [partida_id, jogador_id]);
+    return rows[0] ? rows[0].id : null;
+  },
+
   async getPartidaInfoByTimeId(timeId) {
     const q = `
     SELECT p.id AS partida_id, p.usuario_criador_id
@@ -32,7 +42,7 @@ export const TimeParticipanteModel = {
   async jogadorEstaNaPartida(partida_id, jogador_id) {
     const q = `
     SELECT 1
-    FROM public.partida_participante
+    FROM public.partida_participante 
     WHERE partida_id = $1 AND jogador_id = $2
     LIMIT 1
   `;
@@ -43,32 +53,34 @@ export const TimeParticipanteModel = {
   async existsInTime(timeId, jogadorId) {
     const q = `
     SELECT 1
-    FROM public.partida_jogo_time_participante
-    WHERE partida_jogo_time_id = $1 AND jogador_id = $2
+    FROM public.partida_jogo_time_participante pjtp
+    INNER JOIN public.partida_participante pp ON pp.id = pjtp.partida_participante_id 
+    WHERE partida_jogo_time_id = $1 AND pp.jogador_id = $2
     LIMIT 1
   `;
     const { rows } = await db.query(q, [timeId, jogadorId]);
     return !!rows[0];
   },
 
-  async insertTimeParticipante({ timeId, jogadorId, posicaoId }) {
+  async insertTimeParticipante({ timeId, partidaParticipanteId }) {
     const q = `
     INSERT INTO public.partida_jogo_time_participante
-      (partida_jogo_time_id, jogador_id, posicao_id, gol, assistencia, defesa, cartao_amarelo, cartao_vermelho)
+      (partida_jogo_time_id, partida_participante_id, posicao_id, gol, assistencia, defesa, cartao_amarelo, cartao_vermelho)
     VALUES ($1, $2, NULL, NULL, NULL, NULL, NULL, NULL)
-    RETURNING id, partida_jogo_time_id AS "timeId", jogador_id AS "jogadorId", posicao_id AS "posicaoId",
+    RETURNING id, partida_jogo_time_id AS "timeId", partida_participante_id AS "partidaParticipanteId", posicao_id AS "posicaoId",
               gol, assistencia, defesa, cartao_amarelo AS "cartaoAmarelo", cartao_vermelho AS "cartaoVermelho"
   `;
-    const { rows } = await db.query(q, [timeId, jogadorId]);
+    const { rows } = await db.query(q, [timeId, partidaParticipanteId]);
     return rows[0];
   },
 
   async findTimeParticipanteById(id) {
     const q = `
-    SELECT id, partida_jogo_time_id, jogador_id, posicao_id,
-           gol, assistencia, defesa, cartao_amarelo, cartao_vermelho
-    FROM public.partida_jogo_time_participante
-    WHERE id = $1
+    SELECT pjtp.id, pjtp.partida_jogo_time_id, pp.jogador_id, pjtp.posicao_id,
+           pjtp.gol, pjtp.assistencia, pjtp.defesa, pjtp.cartao_amarelo, pjtp.cartao_vermelho
+    FROM public.partida_jogo_time_participante pjtp
+    INNER JOIN public.partida_participante pp ON pp.id = pjtp.partida_participante_id 
+    WHERE pjtp.id = $1
     LIMIT 1
   `;
     const { rows } = await db.query(q, [id]);
@@ -93,11 +105,19 @@ export const TimeParticipanteModel = {
     UPDATE public.partida_jogo_time_participante
     SET ${sets.join(', ')}
     WHERE id = $${i}
-    RETURNING id, partida_jogo_time_id AS "timeId", jogador_id AS "jogadorId", posicao_id AS "posicaoId",
+    RETURNING id, partida_jogo_time_id AS "timeId", posicao_id AS "posicaoId",
               gol, assistencia, defesa, cartao_amarelo AS "cartaoAmarelo", cartao_vermelho AS "cartaoVermelho"
   `;
     values.push(id);
     const { rows } = await db.query(q, values);
     return rows[0] || null;
+  },
+
+  async deleteTimeParticipante(id) {
+    const q = `
+    DELETE FROM public.partida_jogo_time_participante
+    WHERE id = $1
+  `;
+    await db.query(q, [id]);
   }
 };

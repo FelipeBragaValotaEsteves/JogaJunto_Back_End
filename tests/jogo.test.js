@@ -245,54 +245,6 @@ describe('Testes do Módulo Jogo', () => {
             });
         });
 
-        describe('editarJogo', () => {
-            it('deve editar jogo com sucesso', async () => {
-                const mockJogo = { id: 1, partida_id: 1 };
-                const mockPartida = { id: 1, usuario_criador_id: 123 };
-                const mockJogoAtualizado = { id: 1, nome: 'Jogo Final' };
-
-                vi.spyOn(JogoModel, 'findJogoById').mockResolvedValue(mockJogo);
-                vi.spyOn(JogoModel, 'getPartidaById').mockResolvedValue(mockPartida);
-                vi.spyOn(JogoModel, 'updateJogo').mockResolvedValue(mockJogoAtualizado);
-
-                const resultado = await JogoService.editarJogo({
-                    jogoId: 1,
-                    nome: 'Jogo Final',
-                    solicitanteId: 123
-                });
-
-                expect(resultado).toEqual(mockJogoAtualizado);
-            });
-
-            it('deve retornar not_found_jogo quando jogo não existe', async () => {
-                vi.spyOn(JogoModel, 'findJogoById').mockResolvedValue(null);
-
-                const resultado = await JogoService.editarJogo({
-                    jogoId: 999,
-                    nome: 'Jogo Final',
-                    solicitanteId: 123
-                });
-
-                expect(resultado).toBe('not_found_jogo');
-            });
-
-            it('deve retornar forbidden quando usuário não é criador', async () => {
-                const mockJogo = { id: 1, partida_id: 1 };
-                const mockPartida = { id: 1, usuario_criador_id: 456 };
-
-                vi.spyOn(JogoModel, 'findJogoById').mockResolvedValue(mockJogo);
-                vi.spyOn(JogoModel, 'getPartidaById').mockResolvedValue(mockPartida);
-
-                const resultado = await JogoService.editarJogo({
-                    jogoId: 1,
-                    nome: 'Jogo Final',
-                    solicitanteId: 123
-                });
-
-                expect(resultado).toBe('forbidden');
-            });
-        });
-
         describe('excluirJogo', () => {
             it('deve excluir jogo com sucesso', async () => {
                 const mockJogo = { id: 1, partida_id: 1 };
@@ -457,48 +409,6 @@ describe('Testes do Módulo Jogo', () => {
 
                 expect(res.status).toHaveBeenCalledWith(400);
                 expect(res.json).toHaveBeenCalledWith({ message: 'Dados inválidos para o time 1.' });
-            });
-        });
-
-        describe('editarJogo', () => {
-            it('deve editar jogo com sucesso', async () => {
-                const mockJogo = { id: 1, nome: 'Jogo Final' };
-                req.params.jogoId = '1';
-                req.body.nome = 'Jogo Final';
-
-                vi.spyOn(JogoService, 'editarJogo').mockResolvedValue(mockJogo);
-
-                await JogoController.editarJogo(req, res);
-
-                expect(JogoService.editarJogo).toHaveBeenCalledWith({
-                    jogoId: 1,
-                    nome: 'Jogo Final',
-                    solicitanteId: 123
-                });
-                expect(res.status).toHaveBeenCalledWith(200);
-                expect(res.json).toHaveBeenCalledWith(mockJogo);
-            });
-
-            it('deve retornar 404 quando jogo não encontrado', async () => {
-                req.params.jogoId = '999';
-                req.body.nome = 'Jogo Final';
-                vi.spyOn(JogoService, 'editarJogo').mockResolvedValue('not_found_jogo');
-
-                await JogoController.editarJogo(req, res);
-
-                expect(res.status).toHaveBeenCalledWith(404);
-                expect(res.json).toHaveBeenCalledWith({ message: 'Jogo não encontrado.' });
-            });
-
-            it('deve retornar 403 quando usuário não autorizado', async () => {
-                req.params.jogoId = '1';
-                req.body.nome = 'Jogo Final';
-                vi.spyOn(JogoService, 'editarJogo').mockResolvedValue('forbidden');
-
-                await JogoController.editarJogo(req, res);
-
-                expect(res.status).toHaveBeenCalledWith(403);
-                expect(res.json).toHaveBeenCalledWith({ message: 'Apenas o organizador pode editar.' });
             });
         });
 

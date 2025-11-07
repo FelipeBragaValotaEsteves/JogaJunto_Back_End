@@ -24,16 +24,13 @@ export const ConviteService = {
 
     const updated = await ConviteModel.updateStatus(pending.id, 'aceito');
 
-    const jogador = await JogadorModel.createUsuarioJogador({ 
-      usuario_id: authUserId, 
-      nome: null 
-    });
+    const jogador = await JogadorModel.findByUsuarioId(authUserId);
+
+    if(!jogador) return 'not_found';
 
     await JogadorModel.ensureParticipante({
       partida_id: pending.partida_id,
       jogador_id: jogador.id,
-      confirmado: true,
-      participou: false,
       nota: null,
     });
 

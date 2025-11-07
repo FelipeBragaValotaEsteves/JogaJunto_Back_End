@@ -6,5 +6,6 @@ const router = Router();
 
 router.post('/', requireAuth, TimeParticipanteController.adicionarJogadorAoTime);
 router.put('/:timeParticipanteId', requireAuth, TimeParticipanteController.atualizarEstatisticas);
+router.delete('/:timeParticipanteId', requireAuth, TimeParticipanteController.removerJogadorDoTime);
 
 export default router;
