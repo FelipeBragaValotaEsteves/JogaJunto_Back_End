@@ -40,6 +40,7 @@ export const TimeParticipanteService = {
     if ('cartaoAmarelo' in payload) fields.cartao_amarelo = payload.cartaoAmarelo;
     if ('cartaoVermelho' in payload) fields.cartao_vermelho = payload.cartaoVermelho;
     if ('posicaoId' in payload) fields.posicao_id = payload.posicaoId;
+    if ('nota' in payload) fields.nota = payload.nota;
 
     if (Object.keys(fields).length === 0) return 'no_fields';
 

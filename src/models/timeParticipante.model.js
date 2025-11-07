@@ -89,7 +89,7 @@ export const TimeParticipanteModel = {
   },
 
   async updateTimeParticipante(id, fields) {
-    const allowed = ['gol', 'assistencia', 'defesa', 'cartao_amarelo', 'cartao_vermelho', 'posicao_id'];
+    const allowed = ['gol', 'assistencia', 'defesa', 'cartao_amarelo', 'cartao_vermelho', 'posicao_id', 'nota'];
     const sets = [];
     const values = [];
     let i = 1;

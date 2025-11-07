@@ -82,9 +82,11 @@ export const JogoModel = {
           COALESCE(tp.defesa, 0) AS defesa,
           COALESCE(tp.cartao_amarelo, 0) AS cartao_amarelo,
           COALESCE(tp.cartao_vermelho, 0) AS cartao_vermelho,
+          COALESCE(tp.posicao_id, 0) AS posicao_id,
+          COALESCE(tp.nota, 0) AS nota,
 
           jg.nome AS jogador_nome,
-          u.img as foto
+          u.img AS foto
 
         FROM public.partida_jogo j
         JOIN public.partida_jogo_time t ON t.partida_jogo_id = j.id
@@ -94,7 +96,8 @@ export const JogoModel = {
         LEFT JOIN public.usuario u ON u.id = jg.usuario_id 
         JOIN time_totais tt ON tt.time_id = t.id AND tt.jogo_id = j.id
         WHERE j.id = $1 
-        ORDER BY t.id, tp.id NULLS LAST
+        ORDER BY t.id, tp.id NULLS LAST;
+
       `;
         const { rows } = await db.query(q, [jogoId]);
 
