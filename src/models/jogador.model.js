@@ -6,7 +6,7 @@ export const JogadorModel = {
 
         const q = `
             SELECT id, tipo, usuario_id, nome 
-            FROM public.jogador
+            FROM jogador
             WHERE usuario_id = $1
         `;
         const { rows } = await db.query(q, [usuario_id]);
@@ -16,14 +16,14 @@ export const JogadorModel = {
     async createUsuarioJogador({ usuario_id, nome }) {
         const checkQ = `
             SELECT id, tipo, usuario_id, nome 
-            FROM public.jogador 
+            FROM jogador 
             WHERE usuario_id = $1
         `;
         const existing = await db.query(checkQ, [usuario_id]);
 
         if (existing.rows[0]) {
             const updateQ = `
-                UPDATE public.jogador 
+                UPDATE jogador 
                 SET nome = COALESCE($2, nome)
                 WHERE usuario_id = $1
                 RETURNING id, tipo, usuario_id, nome
@@ -33,7 +33,7 @@ export const JogadorModel = {
         }
 
         const insertQ = `
-            INSERT INTO public.jogador (tipo, usuario_id, nome)
+            INSERT INTO jogador (tipo, usuario_id, nome)
             VALUES ('usuario', $1, $2)
             RETURNING id, tipo, usuario_id, nome
         `;
@@ -43,7 +43,7 @@ export const JogadorModel = {
 
     async createExterno({ nome, criado_por }) {
         const q = `
-            INSERT INTO public.jogador (tipo, nome, criado_por)
+            INSERT INTO jogador (tipo, nome, criado_por)
             VALUES ('externo', $1, $2)
             RETURNING id, tipo, usuario_id, nome
         `;
@@ -53,7 +53,7 @@ export const JogadorModel = {
 
     async ensureParticipante({ partida_id, jogador_id, nota }) {
         const checkQ = `
-            SELECT id FROM public.partida_participante
+            SELECT id FROM partida_participante
             WHERE partida_id = $1 AND jogador_id = $2
             LIMIT 1
         `;
@@ -61,7 +61,7 @@ export const JogadorModel = {
         if (exists.rows[0]) return exists.rows[0];
 
         const insertQ = `
-            INSERT INTO public.partida_participante (partida_id, jogador_id, nota)
+            INSERT INTO partida_participante (partida_id, jogador_id, nota)
             VALUES ($1, $2, $3)
             RETURNING id
         `;
@@ -80,20 +80,20 @@ export const JogadorModel = {
                   ARRAY_AGG(DISTINCT p.nome) FILTER (WHERE p.nome IS NOT NULL), 
                   '{}'
                 ) AS posicoes
-            FROM public.jogador j
-            LEFT JOIN public.partida_participante pp 
+            FROM jogador j
+            LEFT JOIN partida_participante pp 
                 ON j.id = pp.jogador_id 
                 AND pp.partida_id = $1
-            LEFT JOIN public.convite c 
+            LEFT JOIN convite c 
                 ON j.usuario_id = c.usuario_id 
                 AND c.partida_id = $1
-            LEFT JOIN public.usuario u 
+            LEFT JOIN usuario u 
                 ON j.usuario_id = u.id
-            LEFT JOIN public.usuario_posicao up 
+            LEFT JOIN usuario_posicao up 
                 ON u.id = up.usuario_id
-            LEFT JOIN public.posicao p 
+            LEFT JOIN posicao p 
                 ON p.id = up.posicao_id
-            JOIN public.partida pa 
+            JOIN partida pa 
                 ON pa.id = $1
             WHERE 
                 pp.id IS NULL 
@@ -120,20 +120,20 @@ export const JogadorModel = {
                   ARRAY_AGG(DISTINCT p.nome) FILTER (WHERE p.nome IS NOT NULL), 
                   '{}'
                 ) AS posicoes
-            FROM public.jogador j
-            INNER JOIN public.partida_participante pp 
+            FROM jogador j
+            INNER JOIN partida_participante pp 
                 ON j.id = pp.jogador_id 
                 AND pp.partida_id = $1
-            LEFT JOIN public.partida_jogo_time_participante pjtp
+            LEFT JOIN partida_jogo_time_participante pjtp
                 ON pp.id = pjtp.partida_participante_id
-            LEFT JOIN public.partida_jogo_time pjt
+            LEFT JOIN partida_jogo_time pjt
                 ON pjtp.partida_jogo_time_id = pjt.id
                 AND pjt.partida_jogo_id = $2
-            LEFT JOIN public.usuario u
+            LEFT JOIN usuario u
                 ON j.usuario_id = u.id
-            LEFT JOIN public.usuario_posicao up
+            LEFT JOIN usuario_posicao up
                 ON u.id = up.usuario_id
-            LEFT JOIN public.posicao p 
+            LEFT JOIN posicao p 
                 ON p.id = up.posicao_id
             WHERE 
                 pjt.id IS NULL 
@@ -153,26 +153,39 @@ export const JogadorModel = {
                 j.id,
                 j.nome,
                 u.img as foto,
+                pp.id as partida_participante_id,
+                lc.id as convite_id,
                 COALESCE(lc.status, 'manual') as status,
                 array_agg(DISTINCT p.nome) AS posicoes
-            FROM public.jogador j
+            FROM jogador j
             LEFT JOIN LATERAL (
-                SELECT c.status
-                FROM public.convite c
+                SELECT c.status, c.id 
+                FROM convite c
                 WHERE c.usuario_id = j.usuario_id AND c.partida_id = $1
                 ORDER BY c.id DESC
                 LIMIT 1
             ) lc ON true
-            INNER JOIN public.partida_participante pp ON j.id = pp.jogador_id AND pp.partida_id = $1
-            LEFT JOIN public.usuario u ON j.usuario_id = u.id 
-            LEFT JOIN public.usuario_posicao up ON u.id = up.usuario_id 
-            LEFT JOIN public.posicao p ON p.id = up.posicao_id 
+            LEFT JOIN partida_participante pp ON j.id = pp.jogador_id AND pp.partida_id = $1
+            LEFT JOIN usuario u ON j.usuario_id = u.id 
+            LEFT JOIN usuario_posicao up ON u.id = up.usuario_id 
+            LEFT JOIN posicao p ON p.id = up.posicao_id 
             WHERE pp.id IS NOT NULL OR lc.status IS NOT NULL
-            GROUP BY j.id, j.nome, u.img, lc.status
+            GROUP BY j.id, j.nome, u.img, lc.id, lc.status, pp.id 
             ORDER BY j.nome ASC;
         `;
         const { rows } = await db.query(q, [partida_id]);
         return rows;
+    },
+
+    async updateNomeByUsuarioId(usuario_id, nome) {
+        const q = `
+            UPDATE jogador 
+            SET nome = $2
+            WHERE usuario_id = $1
+            RETURNING id, tipo, usuario_id, nome
+        `;
+        const { rows } = await db.query(q, [usuario_id, nome]);
+        return rows[0] || null;
     },
 }
 

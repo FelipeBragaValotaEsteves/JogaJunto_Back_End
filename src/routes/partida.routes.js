@@ -10,6 +10,7 @@ router.post('/cancelar/:id', requireAuth, PartidaController.cancel);
 
 router.get('/criada/:userId', requireAuth, PartidaController.getByUserId);
 router.get('/jogada/:userId', requireAuth, PartidaController.getPlayedByUserId);
+router.get('/resumo/jogada', requireAuth, PartidaController.getResumoPlayedByUserId);
 router.get('/:id', requireAuth, PartidaController.getById);
 router.get('/proximas/:city', requireAuth, PartidaController.getByCityName);
 router.get('/resumo/:partidaId', requireAuth, PartidaController.listarResumoPorPartida);

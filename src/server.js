@@ -14,13 +14,6 @@ app.use(helmet({
   crossOriginResourcePolicy: false
 }));
 
-
-// app.use(cors({
-//   origin: '*',
-//   methods: ['GET', 'POST', 'PATCH', 'DELETE'],
-//   allowedHeaders: ['Content-Type', 'Authorization']
-// }));
-
 app.use('/uploads', express.static(path.resolve('uploads'), {
   setHeaders: (res) => {
     res.setHeader('Cross-Origin-Resource-Policy', 'same-site');

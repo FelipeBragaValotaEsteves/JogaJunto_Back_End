@@ -85,13 +85,27 @@ export const PartidaModel = {
   },
 
   async findPlayedByUserId(userId) {
+
     const { rows } = await db.query(
-      `SELECT * FROM partida p 
+      `SELECT DISTINCT p.* FROM partida p
        INNER JOIN partida_participante pp ON pp.partida_id = p.id 
        INNER JOIN jogador j ON j.id = pp.jogador_id 
-       INNER JOIN partida_jogo_time_participante tpp ON tpp.partida_participante_id = pp.id
        WHERE j.usuario_id = $1  
       ORDER BY data DESC, hora_inicio DESC`,
+      [userId]
+    );
+    return rows;
+  },
+
+  async findResumoPlayedByUserId(userId) {
+
+    const { rows } = await db.query(
+      `SELECT DISTINCT p.* FROM partida p
+       INNER JOIN partida_participante pp ON pp.partida_id = p.id 
+       INNER JOIN jogador j ON j.id = pp.jogador_id 
+       WHERE j.usuario_id = $1  
+      ORDER BY data DESC, hora_inicio DESC
+      LIMIT 5`,
       [userId]
     );
     return rows;
@@ -119,10 +133,10 @@ export const PartidaModel = {
         COALESCE(SUM(COALESCE(tp.assistencia, 0)), 0)     AS time_assistencias,
         COALESCE(SUM(COALESCE(tp.cartao_amarelo, 0)), 0)  AS time_cartoes_amarelos,
         COALESCE(SUM(COALESCE(tp.cartao_vermelho, 0)), 0) AS time_cartoes_vermelhos
-      FROM public.partida_jogo j
-      JOIN public.partida_jogo_time t ON t.partida_jogo_id = j.id
-      LEFT JOIN public.partida_jogo_time_participante tp ON tp.partida_jogo_time_id = t.id 
-      LEFT JOIN public.partida_participante pp ON pp.id = tp.partida_participante_id 
+      FROM partida_jogo j
+      JOIN partida_jogo_time t ON t.partida_jogo_id = j.id
+      LEFT JOIN partida_jogo_time_participante tp ON tp.partida_jogo_time_id = t.id 
+      LEFT JOIN partida_participante pp ON pp.id = tp.partida_participante_id 
       WHERE j.partida_id = $1
       GROUP BY j.id, t.id
     )
@@ -144,11 +158,11 @@ export const PartidaModel = {
       COALESCE(tp.cartao_vermelho, 0) AS cartao_vermelho,
 
       jg.nome AS jogador_nome
-    FROM public.partida_jogo j
-    JOIN public.partida_jogo_time t ON t.partida_jogo_id = j.id
-    LEFT JOIN public.partida_jogo_time_participante tp ON tp.partida_jogo_time_id = t.id
-    LEFT JOIN public.partida_participante pp ON pp.id = tp.partida_participante_id
-    LEFT JOIN public.jogador jg ON jg.id = pp.jogador_id
+    FROM partida_jogo j
+    JOIN partida_jogo_time t ON t.partida_jogo_id = j.id
+    LEFT JOIN partida_jogo_time_participante tp ON tp.partida_jogo_time_id = t.id
+    LEFT JOIN partida_participante pp ON pp.id = tp.partida_participante_id
+    LEFT JOIN jogador jg ON jg.id = pp.jogador_id
     JOIN time_totais tt ON tt.time_id = t.id AND tt.jogo_id = j.id
     WHERE j.partida_id = $1 
     ORDER BY j.id, t.id, tp.id NULLS LAST

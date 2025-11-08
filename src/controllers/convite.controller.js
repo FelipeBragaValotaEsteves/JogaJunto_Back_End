@@ -17,11 +17,11 @@ export const ConviteController = {
 
       try {
         const partidaDetalhada = await PartidaModel.findByIdDetailed(partida_id);
-        
+
         if (partidaDetalhada) {
           const dataFormatada = new Date(partidaDetalhada.data).toLocaleDateString('pt-BR');
           const horaFormatada = partidaDetalhada.hora_inicio;
-          
+
           await NotificacaoService.sendNotification({
             usuario_id: usuario_id,
             title: 'Novo convite para partida!',
@@ -34,7 +34,6 @@ export const ConviteController = {
           });
         }
       } catch (notificationError) {
-        console.error('Erro ao enviar notificação de convite:', notificationError);
       }
 
       return res.status(201).json(result);
@@ -48,17 +47,18 @@ export const ConviteController = {
       const authUserId = req.user?.id;
       const { id } = req.params;
 
-      const result = await ConviteService.aceitar({id, authUserId});
+      const result = await ConviteService.aceitar({ id, authUserId });
       if (result === 'not_found') return res.status(404).json({ message: 'Convite pendente não encontrado.' });
+      if (result === 'forbidden') return res.status(403).json({ message: 'Você não pode aceitar este convite.' });
 
       try {
         const partidaDetalhada = await PartidaModel.findByIdDetailed(result.convite.partida_id);
         const usuarioAceitou = await UsuarioModel.findById(authUserId);
-        
+
         if (partidaDetalhada && usuarioAceitou) {
           const dataFormatada = new Date(partidaDetalhada.data).toLocaleDateString('pt-BR');
           const horaFormatada = partidaDetalhada.hora_inicio;
-          
+
           await NotificacaoService.sendNotification({
             usuario_id: partidaDetalhada.usuario_criador_id,
             title: 'Convite aceito!',
@@ -85,17 +85,17 @@ export const ConviteController = {
       const authUserId = req.user?.id;
       const { id } = req.params;
 
-      const result = await ConviteService.recusar({id, authUserId});
+      const result = await ConviteService.recusar({ id, authUserId });
       if (result === 'not_found') return res.status(404).json({ message: 'Convite pendente não encontrado.' });
 
       try {
         const partidaDetalhada = await PartidaModel.findByIdDetailed(result.convite.partida_id);
         const usuarioRecusou = await UsuarioModel.findById(authUserId);
-        
+
         if (partidaDetalhada && usuarioRecusou) {
           const dataFormatada = new Date(partidaDetalhada.data).toLocaleDateString('pt-BR');
           const horaFormatada = partidaDetalhada.hora_inicio;
-          
+
           await NotificacaoService.sendNotification({
             usuario_id: partidaDetalhada.usuario_criador_id,
             title: 'Convite recusado',
@@ -117,20 +117,20 @@ export const ConviteController = {
     }
   },
 
-  async cancelar(req, res) {
+  async remover(req, res) {
     try {
       const solicitante_id = req.user?.id;
       const { id } = req.params;
 
-      const result = await ConviteService.cancelar({id, solicitante_id});
+      const result = await ConviteService.remover({ id, solicitante_id });
 
-      if (result === 'forbidden') return res.status(403).json({ message: 'Apenas o organizador pode cancelar.' });
+      if (result === 'forbidden') return res.status(403).json({ message: 'Apenas o organizador pode remover.' });
       if (result === 'not_found_partida') return res.status(404).json({ message: 'Partida não encontrada.' });
       if (result === 'not_found') return res.status(404).json({ message: 'Convite pendente não encontrado.' });
 
       return res.status(200).json(result);
     } catch {
-      return res.status(500).json({ message: 'Erro ao cancelar convite.' });
+      return res.status(500).json({ message: 'Erro ao remover convite.' });
     }
   },
 
@@ -147,7 +147,7 @@ export const ConviteController = {
   async listarPorUsuario(req, res) {
     try {
       const { usuarioId } = req.params;
-      
+
       const data = await ConviteService.listarPorUsuario(Number(usuarioId));
       return res.status(200).json(data);
     } catch (error) {

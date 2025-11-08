@@ -2,23 +2,6 @@ import { JogadorService } from '../services/jogador.service.js';
 
 export const JogadorController = {
 
-    async removerDaPartida(req, res) {
-        try {
-            const { partidaId } = req.params;
-            const jogadorId = req.user?.id;
-            const result = await JogadorService.removerDaPartida({ partidaId: Number(partidaId), jogadorId });
-            if (result === 'not_found_partida') {
-                return res.status(404).json({ message: 'Partida não encontrada.' });
-            }
-            if (result === 'not_found_jogador') {
-                return res.status(404).json({ message: 'Jogador não encontrado na partida.' });
-            }
-            return res.status(200).json({ message: 'Jogador removido da partida com sucesso.' });
-        } catch (e) {
-            return res.status(500).json({ message: e.message || 'Erro ao remover jogador da partida.' });
-        }
-    },
-
     async criarExterno(req, res) {
         try {
             const criado_por = req.user?.id;

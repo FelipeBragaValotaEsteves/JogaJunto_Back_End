@@ -56,7 +56,7 @@ describe('Testes do Módulo Partida', () => {
                     expect.stringContaining('INSERT INTO partida'),
                     [
                         'Campo Central', 'Rua das Flores', 'Centro', 123, 1,
-                        123, false, '2024-12-01', '10:00', '12:00',
+                        123, '2024-12-01', '10:00', '12:00',
                         1, 'aguardando', 25.50
                     ]
                 );
@@ -95,7 +95,7 @@ describe('Testes do Módulo Partida', () => {
                     expect.any(String),
                     [
                         'Campo A', null, null, null, null,
-                        123, false, '2024-12-01', '10:00', null,
+                        123, '2024-12-01', '10:00', null,
                         1, 'aguardando', null
                     ]
                 );
@@ -247,7 +247,7 @@ describe('Testes do Módulo Partida', () => {
         describe('findPlayedByUserId', () => {
             it('deve retornar partidas onde usuário participou', async () => {
                 const mockPartidas = [
-                    { id: 1, participou: true, data: '2024-12-01' }
+                    { id: 1, local: 'Campo A', data: '2024-12-01' }
                 ];
 
                 db.query.mockResolvedValue({ rows: mockPartidas });
@@ -255,7 +255,7 @@ describe('Testes do Módulo Partida', () => {
                 const resultado = await PartidaModel.findPlayedByUserId(123);
 
                 expect(db.query).toHaveBeenCalledWith(
-                    expect.stringContaining('participou = true'),
+                    expect.stringContaining('INNER JOIN partida_participante pp'),
                     [123]
                 );
                 expect(resultado).toEqual(mockPartidas);

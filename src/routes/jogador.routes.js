@@ -11,6 +11,4 @@ router.get('/disponiveis/partida/:partidaId', requireAuth, JogadorController.lis
 router.get('/disponiveis/jogo/:jogoId', requireAuth, JogadorController.listarJogadoresDisponiveisPorJogo);
 router.get('/partida/:partidaId', requireAuth, JogadorController.listarPorPartida);
 
-router.get('/remover-partida/:partidaId', requireAuth, JogadorController.removerDaPartida);
-
 export default router;

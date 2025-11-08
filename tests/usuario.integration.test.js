@@ -151,10 +151,13 @@ describe('Testes de Integração - Usuario', () => {
 
         it('deve funcionar com upload de arquivo', async () => {
             const mockUsuario = { id: 123, nome: 'João' };
+            const mockJogador = { id: 1, tipo: 'usuario', usuario_id: 123, nome: 'João' };
 
             db.query
-                .mockResolvedValueOnce({ rows: [mockUsuario] })
-                .mockResolvedValueOnce({ rows: [] });
+                .mockResolvedValueOnce({ rows: [mockUsuario] })       
+                .mockResolvedValueOnce({ rows: [mockJogador] })       
+                .mockResolvedValueOnce({ rows: [] })                  
+                .mockResolvedValueOnce({ rows: [mockUsuario] });    
 
             const imagePath = path.resolve('tests/fixtures/test-image.jpg');
 

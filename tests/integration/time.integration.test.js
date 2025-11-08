@@ -56,7 +56,7 @@ describe('Testes de Integração - Time', () => {
 
             expect(response.body).toEqual(mockTime);
             expect(db.query).toHaveBeenCalledWith(
-                expect.stringContaining('INSERT INTO public.partida_jogo_time'),
+                expect.stringContaining('INSERT INTO partida_jogo_time'),
                 [1, 'Time A']
             );
         });
@@ -135,7 +135,7 @@ describe('Testes de Integração - Time', () => {
 
             expect(response.body).toEqual(mockTimeAtualizado);
             expect(db.query).toHaveBeenCalledWith(
-                expect.stringContaining('UPDATE public.partida_jogo_time'),
+                expect.stringContaining('UPDATE partida_jogo_time'),
                 [1, 'Time Editado']
             );
         });
@@ -187,7 +187,7 @@ describe('Testes de Integração - Time', () => {
 
             expect(response.body).toEqual({ message: 'Time excluído com sucesso.' });
             expect(db.query).toHaveBeenCalledWith(
-                'DELETE FROM public.partida_jogo_time WHERE id = $1',
+                'DELETE FROM partida_jogo_time WHERE id = $1',
                 [1]
             );
         });

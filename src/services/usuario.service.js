@@ -1,10 +1,15 @@
 import { UsuarioModel } from '../models/usuario.model.js';
 import { UsuarioPosicaoModel } from '../models/usuarioPosicao.model.js';
+import { JogadorModel } from '../models/jogador.model.js';
 
 export const UsuarioService = {
  async updateProfile(userId, { name, email, img, positions }) {
     if (name || email || img) {
       await UsuarioModel.update(userId, { name, email, img });
+      
+      if (name) {
+        await JogadorModel.updateNomeByUsuarioId(userId, name);
+      }
     }
 
     if (Array.isArray(positions)) {

@@ -45,20 +45,19 @@ describe('Testes de Integração das Rotas de Jogador', () => {
                 tipo: 'externo', 
                 usuario_id: null, 
                 nome: 'João Silva', 
-                posicao: 'Atacante' 
             };
 
             db.query.mockResolvedValue({ rows: [mockJogador] });
 
             const response = await request(app)
                 .post('/jogador/externo')
-                .send({ nome: 'João Silva', posicao: 'Atacante' })
+                .send({ nome: 'João Silva'})
                 .expect(201);
 
             expect(response.body).toEqual(mockJogador);
             expect(db.query).toHaveBeenCalledWith(
                 expect.any(String),
-                ['João Silva', 'Atacante', 123]
+                ['João Silva', 123]
             );
         });
 
@@ -104,29 +103,6 @@ describe('Testes de Integração das Rotas de Jogador', () => {
 
             expect(response.body).toEqual({ participante_id: 1, jogador_id: 456 });
         });
-
-        // it('deve criar e adicionar novo jogador externo à partida', async () => {
-        //     const mockPartida = { id: 1, usuario_criador_id: 123 };
-        //     const mockJogador = { id: 789 };
-        //     const mockParticipante = { id: 2 };
-
-        //     ConviteModel.getPartidaById.mockResolvedValue(mockPartida);
-        //     db.query
-        //         .mockResolvedValueOnce({ rows: [] })
-        //         .mockResolvedValueOnce({ rows: [mockJogador] })
-        //         .mockResolvedValueOnce({ rows: [mockParticipante] });
-
-        //     const response = await request(app)
-        //         .post('/jogador/externo/adicionar')
-        //         .send({ 
-        //             partida_id: 1, 
-        //             nome: 'Pedro Costa', 
-        //             posicao: 'Goleiro' 
-        //         })
-        //         .expect(201);
-
-        //     expect(response.body).toEqual({ participante_id: 2, jogador_id: 789 });
-        // });
 
         it('deve retornar erro quando partida não encontrada', async () => {
             ConviteModel.getPartidaById.mockResolvedValue(null);

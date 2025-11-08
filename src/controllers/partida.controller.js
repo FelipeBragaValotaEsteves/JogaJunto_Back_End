@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { PartidaService } from '../services/partida.service.js';
+import { JogadorModel } from '../models/jogador.model.js';
 
 const toDate = (v) => (v instanceof Date ? v : new Date(v));
 
@@ -47,12 +48,27 @@ export const PartidaController = {
   async create(req, res, next) {
     try {
       const data = createSchema.parse(req.body);
+    
       const created = await PartidaService.create({
         ...data,
         usuario_criador_id: req.user.id
       });
+      
+      const jogador = await JogadorModel.findByUsuarioId(req.user.id);
+      
+      if (jogador) {
+
+        await JogadorModel.ensureParticipante({
+          partida_id: created.id,
+          jogador_id: jogador.id,
+          nota: null
+        });
+      }
+      
       res.status(201).json(created);
-    } catch (err) { next(err); }
+    } catch (err) { 
+      next(err); 
+    }
   },
 
   async update(req, res, next) {
@@ -94,9 +110,16 @@ export const PartidaController = {
     } catch (err) { next(err); }
   },
 
+  async getResumoPlayedByUserId(req, res, next) {
+    try {
+      const found = await PartidaService.findResumoPlayedByUserId(Number(req.user.id));
+      res.json(found);
+    } catch (err) { next(err); }
+  },
+
   async getByCityName(req, res, next) {
     try {
-      const city  = req.params.city;
+      const city = req.params.city;
 
       if (!city) {
         return res.status(400).json({ message: 'Cidade inválida' });

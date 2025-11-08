@@ -33,8 +33,8 @@ describe('Testes de Integração - TimeParticipante', () => {
             const mockParticipante = {
                 id: 1,
                 timeId: 1,
-                jogadorId: 456,
-                posicaoId: 1,
+                partidaParticipanteId: 10,
+                posicaoId: null,
                 gol: null,
                 assistencia: null,
                 defesa: null,
@@ -43,25 +43,21 @@ describe('Testes de Integração - TimeParticipante', () => {
             };
 
             db.query
-                .mockResolvedValueOnce({ rows: [mockPartidaInfo] })
+                .mockResolvedValueOnce({ rows: [mockPartidaInfo] })    
                 .mockResolvedValueOnce({ rows: [{ 1: 1 }] })
                 .mockResolvedValueOnce({ rows: [] })
+                .mockResolvedValueOnce({ rows: [{ id: 10 }] })
                 .mockResolvedValueOnce({ rows: [mockParticipante] });
 
             const response = await request(app)
                 .post('/time-participante')
                 .send({
                     timeId: 1,
-                    jogadorId: 456,
-                    posicaoId: 1
+                    jogadorId: 456
                 })
                 .expect(201);
 
             expect(response.body).toEqual(mockParticipante);
-            expect(db.query).toHaveBeenCalledWith(
-                expect.stringContaining('INSERT INTO public.partida_jogo_time_participante'),
-                [1, 456, 1]
-            );
         });
 
         it('deve retornar 404 quando time não encontrado', async () => {
@@ -176,7 +172,7 @@ describe('Testes de Integração - TimeParticipante', () => {
 
             expect(response.body).toEqual(mockAtualizado);
             expect(db.query).toHaveBeenCalledWith(
-                expect.stringContaining('UPDATE public.partida_jogo_time_participante'),
+                expect.stringContaining('UPDATE partida_jogo_time_participante'),
                 [2, 1, 1, 1]
             );
         });

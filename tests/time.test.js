@@ -33,7 +33,7 @@ describe('Testes do Módulo Time', () => {
                 const resultado = await TimeModel.createTime(1, 'Time A');
 
                 expect(db.query).toHaveBeenCalledWith(
-                    expect.stringContaining('INSERT INTO public.partida_jogo_time'),
+                    expect.stringContaining('INSERT INTO partida_jogo_time'),
                     [1, 'Time A']
                 );
                 expect(resultado).toEqual(mockTime);
@@ -109,7 +109,7 @@ describe('Testes do Módulo Time', () => {
                 const resultado = await TimeModel.updateTime(1, { nome: 'Time Atualizado' });
 
                 expect(db.query).toHaveBeenCalledWith(
-                    expect.stringContaining('UPDATE public.partida_jogo_time'),
+                    expect.stringContaining('UPDATE partida_jogo_time'),
                     [1, 'Time Atualizado']
                 );
                 expect(resultado).toEqual(mockTimeAtualizado);
@@ -142,7 +142,7 @@ describe('Testes do Módulo Time', () => {
                 await TimeModel.deleteTime(1);
 
                 expect(db.query).toHaveBeenCalledWith(
-                    'DELETE FROM public.partida_jogo_time WHERE id = $1',
+                    'DELETE FROM partida_jogo_time WHERE id = $1',
                     [1]
                 );
             });

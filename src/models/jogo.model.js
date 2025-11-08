@@ -3,7 +3,7 @@ import { db } from '../config/database.js';
 export const JogoModel = {
 
     async getPartidaById(id) {
-        const q = 'SELECT id, usuario_criador_id FROM public.partida WHERE id = $1';
+        const q = 'SELECT id, usuario_criador_id FROM partida WHERE id = $1';
         const { rows } = await db.query(q, [id]);
         return rows[0] || null;
     },
@@ -11,8 +11,8 @@ export const JogoModel = {
     async getPartidaIdByJogoId(jogo_id) {
         const q = `
             SELECT p.id
-            FROM public.partida_jogo j
-            JOIN public.partida p ON p.id = j.partida_id
+            FROM partida_jogo j
+            JOIN partida p ON p.id = j.partida_id
             WHERE j.id = $1
         `;
         const { rows } = await db.query(q, [jogo_id]);
@@ -21,7 +21,7 @@ export const JogoModel = {
 
     async createJogo(partida_id) {
         const q = `
-            INSERT INTO public.partida_jogo (partida_id)
+            INSERT INTO partida_jogo (partida_id)
             VALUES ($1)
             RETURNING id, partida_id
         `;
@@ -32,7 +32,7 @@ export const JogoModel = {
     async findJogoById(id) {
         const q = `
             SELECT id, partida_id
-            FROM public.partida_jogo
+            FROM partida_jogo
             WHERE id = $1
             LIMIT 1
         `;
@@ -41,11 +41,11 @@ export const JogoModel = {
     },
 
     async deleteTimesByJogoId(jogo_id) {
-        await db.query(`DELETE FROM public.partida_jogo_time WHERE partida_jogo_id = $1`, [jogo_id]);
+        await db.query(`DELETE FROM partida_jogo_time WHERE partida_jogo_id = $1`, [jogo_id]);
     },
 
     async deleteJogo(id) {
-        await db.query(`DELETE FROM public.partida_jogo WHERE id = $1`, [id]);
+        await db.query(`DELETE FROM partida_jogo WHERE id = $1`, [id]);
     },
 
     async aggregateResumoPorJogo(jogoId) {
@@ -59,10 +59,10 @@ export const JogoModel = {
             COALESCE(SUM(COALESCE(tp.assistencia, 0)), 0)     AS time_assistencias,
             COALESCE(SUM(COALESCE(tp.cartao_amarelo, 0)), 0)  AS time_cartoes_amarelos,
             COALESCE(SUM(COALESCE(tp.cartao_vermelho, 0)), 0) AS time_cartoes_vermelhos
-          FROM public.partida_jogo j
-          JOIN public.partida_jogo_time t ON t.partida_jogo_id = j.id
-          LEFT JOIN public.partida_jogo_time_participante tp ON tp.partida_jogo_time_id = t.id
-          LEFT JOIN public.partida_participante pp ON pp.id = tp.partida_participante_id 
+          FROM partida_jogo j
+          JOIN partida_jogo_time t ON t.partida_jogo_id = j.id
+          LEFT JOIN partida_jogo_time_participante tp ON tp.partida_jogo_time_id = t.id
+          LEFT JOIN partida_participante pp ON pp.id = tp.partida_participante_id 
           WHERE j.id = $1
           GROUP BY j.id, t.id
         )
@@ -84,16 +84,18 @@ export const JogoModel = {
           COALESCE(tp.cartao_vermelho, 0) AS cartao_vermelho,
           COALESCE(tp.posicao_id, 0) AS posicao_id,
           COALESCE(tp.nota, 0) AS nota,
+          pos.nome AS posicao_nome,
 
           jg.nome AS jogador_nome,
           u.img AS foto
 
-        FROM public.partida_jogo j
-        JOIN public.partida_jogo_time t ON t.partida_jogo_id = j.id
-        LEFT JOIN public.partida_jogo_time_participante tp ON tp.partida_jogo_time_id = t.id
-        LEFT JOIN public.partida_participante pp ON pp.id = tp.partida_participante_id
-        LEFT JOIN public.jogador jg ON jg.id = pp.jogador_id 
-        LEFT JOIN public.usuario u ON u.id = jg.usuario_id 
+        FROM partida_jogo j
+        JOIN partida_jogo_time t ON t.partida_jogo_id = j.id
+        LEFT JOIN partida_jogo_time_participante tp ON tp.partida_jogo_time_id = t.id 
+        LEFT JOIN posicao pos ON pos.id = tp.posicao_id 
+        LEFT JOIN partida_participante pp ON pp.id = tp.partida_participante_id 
+        LEFT JOIN jogador jg ON jg.id = pp.jogador_id 
+        LEFT JOIN usuario u ON u.id = jg.usuario_id 
         JOIN time_totais tt ON tt.time_id = t.id AND tt.jogo_id = j.id
         WHERE j.id = $1 
         ORDER BY t.id, tp.id NULLS LAST;
@@ -136,7 +138,11 @@ export const JogoModel = {
                         assistencia: row.assistencia,
                         defesa: row.defesa,
                         cartaoAmarelo: row.cartao_amarelo,
-                        cartaoVermelho: row.cartao_vermelho
+                        cartaoVermelho: row.cartao_vermelho,
+                        posicaoId: row.posicao_id,
+                        nota: row.nota,
+                        posicaoNome: row.posicao_nome
+                        
                     }
                 };
                 timesMap.get(row.time_id).jogadores.push(jogador);

@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { ConviteModel } from '../src/models/convite.model.js';
 import { ConviteService } from '../src/services/convite.service.js';
 import { ConviteController } from '../src/controllers/convite.controller.js';
+import { UsuarioModel } from '../src/models/usuario.model.js';
 
 vi.mock('../src/config/database.js', () => ({
     db: {
@@ -39,7 +40,7 @@ describe('Testes do Módulo Convite', () => {
                 const result = await ConviteModel.getPartidaById(1);
 
                 expect(db.query).toHaveBeenCalledWith(
-                    'SELECT id, usuario_criador_id FROM public.partida WHERE id = $1',
+                    'SELECT id, usuario_criador_id FROM partida WHERE id = $1',
                     [1]
                 );
                 expect(result).toEqual(mockPartida);
@@ -108,10 +109,10 @@ describe('Testes do Módulo Convite', () => {
 
         describe('findPendingById (buscar convite pendente por id)', () => {
             it('deve retornar convite pendente com info da partida quando encontrado', async () => {
-                const mockConvite = { 
-                    id: 1, 
-                    usuario_id: 123, 
-                    partida_id: 1, 
+                const mockConvite = {
+                    id: 1,
+                    usuario_id: 123,
+                    partida_id: 1,
                     status: 'pendente',
                     usuario_criador_id: 456
                 };
@@ -157,11 +158,11 @@ describe('Testes do Módulo Convite', () => {
             });
 
             it('deve criar novo participante quando não encontrado', async () => {
-                const mockNewParticipante = { 
-                    id: 2, 
-                    partida_id: 1, 
-                    jogador_id: 123, 
-                    nota: null 
+                const mockNewParticipante = {
+                    id: 2,
+                    partida_id: 1,
+                    jogador_id: 123,
+                    nota: null
                 };
                 db.query.mockResolvedValueOnce({ rows: [] });
                 db.query.mockResolvedValueOnce({ rows: [mockNewParticipante] });
@@ -197,9 +198,9 @@ describe('Testes do Módulo Convite', () => {
         describe('listByUsuario (listar por usuário)', () => {
             it('deve retornar convites do usuário', async () => {
                 const mockConvites = [
-                    { 
-                        convite_id: 1, 
-                        partida_id: 1, 
+                    {
+                        convite_id: 1,
+                        partida_id: 1,
                         status: 'pendente',
                         local: 'Campo A',
                         data: '2024-12-01',
@@ -279,7 +280,7 @@ describe('Testes do Módulo Convite', () => {
         });
 
         describe('aceitar', () => {
-            it('deve aceitar convite quando válido', async () => {
+            it('deve aceitar convite com sucesso', async () => {
                 const mockPending = { id: 1, usuario_id: 123, partida_id: 1, usuario_criador_id: 456 };
                 const mockUpdated = { id: 1, usuario_id: 123, partida_id: 1, status: 'aceito' };
 
@@ -325,25 +326,25 @@ describe('Testes do Módulo Convite', () => {
             });
         });
 
-        describe('cancelar', () => {
-            it('deve cancelar convite quando válido', async () => {
+        describe('remover', () => {
+            it('deve remover convite quando válido', async () => {
                 const mockPending = { id: 1, usuario_id: 456, partida_id: 1, usuario_criador_id: 123 };
                 const mockUpdated = { id: 1, usuario_id: 456, partida_id: 1, status: 'cancelado' };
 
                 vi.spyOn(ConviteModel, 'findPendingById').mockResolvedValue(mockPending);
-                vi.spyOn(ConviteModel, 'updateStatus').mockResolvedValue(mockUpdated);
+                vi.spyOn(ConviteModel, 'delete').mockResolvedValue(mockUpdated);
 
-                const result = await ConviteService.cancelar({ id: 1, solicitanteId: 123 });
+                const result = await ConviteService.remover({ id: 1, solicitante_id: 123 });
 
                 expect(result).toEqual({ convite: mockUpdated });
-                expect(ConviteModel.updateStatus).toHaveBeenCalledWith(1, 'cancelado');
+                expect(ConviteModel.delete).toHaveBeenCalledWith(1);
             });
 
             it('deve retornar forbidden quando o usuário não for o organizador', async () => {
                 const mockPending = { id: 1, usuario_id: 456, partida_id: 1, usuario_criador_id: 123 };
                 vi.spyOn(ConviteModel, 'findPendingById').mockResolvedValue(mockPending);
 
-                const result = await ConviteService.cancelar({ id: 1, solicitanteId: 999 });
+                const result = await ConviteService.remover({ id: 1, solicitante_id: 999 });
 
                 expect(result).toBe('forbidden');
             });
@@ -445,25 +446,45 @@ describe('Testes do Módulo Convite', () => {
         });
 
         describe('aceitar', () => {
-            it('deve aceitar convite com sucesso', async () => {
-                const mockResult = { convite: { id: 1, status: 'aceito' } };
-                req.params.id = '1';
-                vi.spyOn(ConviteService, 'aceitar').mockResolvedValue(mockResult);
 
-                await ConviteController.aceitar(req, res);
+            describe('aceitar', () => {
+                it('deve aceitar convite com sucesso', async () => {
+                    const mockResult = {
+                        convite: {
+                            id: 1,
+                            usuario_id: 123,
+                            partida_id: 1,
+                            status: 'aceito'
+                        }
+                    };
+                    req.params.id = '1';
+                    vi.spyOn(ConviteService, 'aceitar').mockResolvedValue(mockResult);
 
-                expect(res.status).toHaveBeenCalledWith(200);
-                expect(res.json).toHaveBeenCalledWith(mockResult);
-            });
+                    await ConviteController.aceitar(req, res);
 
-            it('deve retornar 404 quando o convite pendente não for encontrado', async () => {
-                req.params.id = '999';
-                vi.spyOn(ConviteService, 'aceitar').mockResolvedValue('not_found');
+                    expect(res.status).toHaveBeenCalledWith(200);
+                    expect(res.json).toHaveBeenCalledWith(mockResult);
+                });
 
-                await ConviteController.aceitar(req, res);
+                it('deve retornar 403 quando o usuário não puder aceitar o convite', async () => {
+                    req.params.id = '1';
+                    vi.spyOn(ConviteService, 'aceitar').mockResolvedValue('forbidden');
 
-                expect(res.status).toHaveBeenCalledWith(404);
-                expect(res.json).toHaveBeenCalledWith({ message: 'Convite pendente não encontrado.' });
+                    await ConviteController.aceitar(req, res);
+
+                    expect(res.status).toHaveBeenCalledWith(403);
+                    expect(res.json).toHaveBeenCalledWith({ message: 'Você não pode aceitar este convite.' });
+                });
+
+                it('deve retornar 404 quando o convite pendente não for encontrado', async () => {
+                    req.params.id = '999';
+                    vi.spyOn(ConviteService, 'aceitar').mockResolvedValue('not_found');
+
+                    await ConviteController.aceitar(req, res);
+
+                    expect(res.status).toHaveBeenCalledWith(404);
+                    expect(res.json).toHaveBeenCalledWith({ message: 'Convite pendente não encontrado.' });
+                });
             });
         });
 
@@ -477,29 +498,6 @@ describe('Testes do Módulo Convite', () => {
 
                 expect(res.status).toHaveBeenCalledWith(200);
                 expect(res.json).toHaveBeenCalledWith(mockResult);
-            });
-        });
-
-        describe('cancelar', () => {
-            it('deve cancelar convite com sucesso', async () => {
-                const mockResult = { convite: { id: 1, status: 'cancelado' } };
-                req.params.id = '1';
-                vi.spyOn(ConviteService, 'cancelar').mockResolvedValue(mockResult);
-
-                await ConviteController.cancelar(req, res);
-
-                expect(res.status).toHaveBeenCalledWith(200);
-                expect(res.json).toHaveBeenCalledWith(mockResult);
-            });
-
-            it('deve retornar 403 quando proibido', async () => {
-                req.params.id = '1';
-                vi.spyOn(ConviteService, 'cancelar').mockResolvedValue('forbidden');
-
-                await ConviteController.cancelar(req, res);
-
-                expect(res.status).toHaveBeenCalledWith(403);
-                expect(res.json).toHaveBeenCalledWith({ message: 'Apenas o organizador pode cancelar.' });
             });
         });
 

@@ -29,7 +29,7 @@ describe('Testes do Módulo TimeParticipante', () => {
                 const resultado = await TimeParticipanteModel.getPartidaInfoByTimeId(1);
 
                 expect(db.query).toHaveBeenCalledWith(
-                    expect.stringContaining('JOIN public.partida_jogo j'),
+                    expect.stringContaining('JOIN partida_jogo j'),
                     [1]
                 );
                 expect(resultado).toEqual(mockPartidaInfo);
@@ -56,7 +56,7 @@ describe('Testes do Módulo TimeParticipante', () => {
                 const resultado = await TimeParticipanteModel.getPartidaInfoByTimeParticipanteId(1);
 
                 expect(db.query).toHaveBeenCalledWith(
-                    expect.stringContaining('FROM public.partida_jogo_time_participante tp'),
+                    expect.stringContaining('FROM partida_jogo_time_participante tp'),
                     [1]
                 );
                 expect(resultado).toEqual(mockPartidaInfo);
@@ -78,7 +78,7 @@ describe('Testes do Módulo TimeParticipante', () => {
                 const resultado = await TimeParticipanteModel.jogadorEstaNaPartida(1, 123);
 
                 expect(db.query).toHaveBeenCalledWith(
-                    expect.stringContaining('FROM public.partida_participante'),
+                    expect.stringContaining('FROM partida_participante'),
                     [1, 123]
                 );
                 expect(resultado).toBe(true);
@@ -100,7 +100,7 @@ describe('Testes do Módulo TimeParticipante', () => {
                 const resultado = await TimeParticipanteModel.existsInTime(1, 123);
 
                 expect(db.query).toHaveBeenCalledWith(
-                    expect.stringContaining('FROM public.partida_jogo_time_participante'),
+                    expect.stringContaining('FROM partida_jogo_time_participante'),
                     [1, 123]
                 );
                 expect(resultado).toBe(true);
@@ -120,8 +120,8 @@ describe('Testes do Módulo TimeParticipante', () => {
                 const mockParticipante = {
                     id: 1,
                     timeId: 1,
-                    jogadorId: 123,
-                    posicaoId: 1,
+                    partidaParticipanteId: 10,
+                    posicaoId: null,
                     gol: null,
                     assistencia: null,
                     defesa: null,
@@ -133,13 +133,12 @@ describe('Testes do Módulo TimeParticipante', () => {
 
                 const resultado = await TimeParticipanteModel.insertTimeParticipante({
                     timeId: 1,
-                    jogadorId: 123,
-                    posicaoId: 1
+                    partidaParticipanteId: 10
                 });
 
                 expect(db.query).toHaveBeenCalledWith(
-                    expect.stringContaining('INSERT INTO public.partida_jogo_time_participante'),
-                    [1, 123, 1]
+                    expect.stringContaining('INSERT INTO partida_jogo_time_participante'),
+                    [1, 10]
                 );
                 expect(resultado).toEqual(mockParticipante);
             });
@@ -148,21 +147,19 @@ describe('Testes do Módulo TimeParticipante', () => {
                 const mockParticipante = {
                     id: 1,
                     timeId: 1,
-                    jogadorId: 123,
-                    posicaoId: 2
+                    partidaParticipanteId: 15
                 };
 
                 db.query.mockResolvedValue({ rows: [mockParticipante] });
 
                 await TimeParticipanteModel.insertTimeParticipante({
                     timeId: 1,
-                    jogadorId: 123,
-                    posicaoId: 2
+                    partidaParticipanteId: 15
                 });
 
                 expect(db.query).toHaveBeenCalledWith(
-                    expect.stringContaining('VALUES ($1, $2, $3, NULL, NULL, NULL, NULL, NULL)'),
-                    [1, 123, 2]
+                    expect.stringContaining('VALUES ($1, $2, NULL, NULL, NULL, NULL, NULL, NULL)'),
+                    [1, 15]
                 );
             });
         });
@@ -186,7 +183,7 @@ describe('Testes do Módulo TimeParticipante', () => {
                 const resultado = await TimeParticipanteModel.findTimeParticipanteById(1);
 
                 expect(db.query).toHaveBeenCalledWith(
-                    expect.stringContaining('FROM public.partida_jogo_time_participante'),
+                    expect.stringContaining('FROM partida_jogo_time_participante'),
                     [1]
                 );
                 expect(resultado).toEqual(mockParticipante);
@@ -224,7 +221,7 @@ describe('Testes do Módulo TimeParticipante', () => {
                 });
 
                 expect(db.query).toHaveBeenCalledWith(
-                    expect.stringContaining('UPDATE public.partida_jogo_time_participante'),
+                    expect.stringContaining('UPDATE partida_jogo_time_participante'),
                     [2, 1, 1, 1]
                 );
                 expect(resultado).toEqual(mockAtualizado);
@@ -269,29 +266,28 @@ describe('Testes do Módulo TimeParticipante', () => {
         describe('adicionarJogadorAoTime', () => {
             it('deve adicionar jogador ao time com sucesso', async () => {
                 const mockPartidaInfo = { partida_id: 1, usuario_criador_id: 123 };
+                const mockPartidaParticipanteId = 10;
                 const mockParticipante = {
                     id: 1,
                     timeId: 1,
-                    jogadorId: 456,
-                    posicaoId: 1
+                    jogadorId: 456
                 };
 
                 vi.spyOn(TimeParticipanteModel, 'getPartidaInfoByTimeId').mockResolvedValue(mockPartidaInfo);
                 vi.spyOn(TimeParticipanteModel, 'jogadorEstaNaPartida').mockResolvedValue(true);
                 vi.spyOn(TimeParticipanteModel, 'existsInTime').mockResolvedValue(false);
+                vi.spyOn(TimeParticipanteModel, 'getPartidaParticipanteId').mockResolvedValue(mockPartidaParticipanteId);
                 vi.spyOn(TimeParticipanteModel, 'insertTimeParticipante').mockResolvedValue(mockParticipante);
 
                 const resultado = await TimeParticipanteService.adicionarJogadorAoTime({
                     timeId: 1,
                     jogadorId: 456,
-                    posicaoId: 1,
                     solicitanteId: 123
                 });
 
                 expect(TimeParticipanteModel.insertTimeParticipante).toHaveBeenCalledWith({
                     timeId: 1,
-                    jogadorId: 456,
-                    posicaoId: 1
+                    partidaParticipanteId: 10
                 });
                 expect(resultado).toEqual(mockParticipante);
             });
@@ -300,7 +296,6 @@ describe('Testes do Módulo TimeParticipante', () => {
                 const resultado = await TimeParticipanteService.adicionarJogadorAoTime({
                     timeId: null,
                     jogadorId: 456,
-                    posicaoId: 1,
                     solicitanteId: 123
                 });
 
@@ -313,7 +308,6 @@ describe('Testes do Módulo TimeParticipante', () => {
                 const resultado = await TimeParticipanteService.adicionarJogadorAoTime({
                     timeId: 999,
                     jogadorId: 456,
-                    posicaoId: 1,
                     solicitanteId: 123
                 });
 
@@ -327,7 +321,6 @@ describe('Testes do Módulo TimeParticipante', () => {
                 const resultado = await TimeParticipanteService.adicionarJogadorAoTime({
                     timeId: 1,
                     jogadorId: 456,
-                    posicaoId: 1,
                     solicitanteId: 123
                 });
 
@@ -342,7 +335,6 @@ describe('Testes do Módulo TimeParticipante', () => {
                 const resultado = await TimeParticipanteService.adicionarJogadorAoTime({
                     timeId: 1,
                     jogadorId: 456,
-                    posicaoId: 1,
                     solicitanteId: 123
                 });
 
@@ -358,7 +350,6 @@ describe('Testes do Módulo TimeParticipante', () => {
                 const resultado = await TimeParticipanteService.adicionarJogadorAoTime({
                     timeId: 1,
                     jogadorId: 456,
-                    posicaoId: 1,
                     solicitanteId: 123
                 });
 
@@ -491,14 +482,12 @@ describe('Testes do Módulo TimeParticipante', () => {
                 const mockParticipante = {
                     id: 1,
                     timeId: 1,
-                    jogadorId: 456,
-                    posicaoId: 1
+                    jogadorId: 456
                 };
 
                 req.body = {
                     timeId: 1,
-                    jogadorId: 456,
-                    posicaoId: 1
+                    jogadorId: 456
                 };
 
                 vi.spyOn(TimeParticipanteService, 'adicionarJogadorAoTime').mockResolvedValue(mockParticipante);
@@ -508,7 +497,6 @@ describe('Testes do Módulo TimeParticipante', () => {
                 expect(TimeParticipanteService.adicionarJogadorAoTime).toHaveBeenCalledWith({
                     timeId: 1,
                     jogadorId: 456,
-                    posicaoId: 1,
                     solicitanteId: 123
                 });
                 expect(res.status).toHaveBeenCalledWith(201);
@@ -523,7 +511,7 @@ describe('Testes do Módulo TimeParticipante', () => {
 
                 expect(res.status).toHaveBeenCalledWith(400);
                 expect(res.json).toHaveBeenCalledWith({
-                    message: 'timeId, jogadorId e posicaoId são obrigatórios.'
+                    message: 'timeId e jogadorId são obrigatórios.'
                 });
             });
 

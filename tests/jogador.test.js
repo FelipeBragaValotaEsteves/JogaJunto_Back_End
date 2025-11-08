@@ -73,41 +73,17 @@ describe('Testes do Módulo Jogador', () => {
                     tipo: 'externo', 
                     usuario_id: null, 
                     nome: 'Maria Santos', 
-                    posicao: 'Atacante' 
                 };
                 db.query.mockResolvedValue({ rows: [mockJogador] });
 
                 const resultado = await JogadorModel.createExterno({ 
                     nome: 'Maria Santos', 
-                    posicao: 'Atacante', 
                     criado_por: 123 
                 });
 
                 expect(db.query).toHaveBeenCalledWith(
                     expect.any(String),
-                    ['Maria Santos', 'Atacante', 123]
-                );
-                expect(resultado).toEqual(mockJogador);
-            });
-
-            it('deve criar jogador externo sem posição', async () => {
-                const mockJogador = { 
-                    id: 3, 
-                    tipo: 'externo', 
-                    usuario_id: null, 
-                    nome: 'Pedro Costa', 
-                    posicao: null 
-                };
-                db.query.mockResolvedValue({ rows: [mockJogador] });
-
-                const resultado = await JogadorModel.createExterno({ 
-                    nome: 'Pedro Costa', 
-                    criado_por: 123 
-                });
-
-                expect(db.query).toHaveBeenCalledWith(
-                    expect.any(String),
-                    ['Pedro Costa', null, 123]
+                    ['Maria Santos', 123]
                 );
                 expect(resultado).toEqual(mockJogador);
             });
@@ -240,19 +216,16 @@ describe('Testes do Módulo Jogador', () => {
                     id: 1, 
                     tipo: 'externo', 
                     nome: 'João Silva', 
-                    posicao: 'Atacante' 
                 };
                 vi.spyOn(JogadorModel, 'createExterno').mockResolvedValue(mockJogador);
 
                 const resultado = await JogadorService.criarExterno({ 
                     nome: 'João Silva', 
-                    posicao: 'Atacante', 
                     criado_por: 123 
                 });
 
                 expect(JogadorModel.createExterno).toHaveBeenCalledWith({ 
                     nome: 'João Silva', 
-                    posicao: 'Atacante', 
                     criado_por: 123 
                 });
                 expect(resultado).toEqual(mockJogador);
@@ -261,23 +234,6 @@ describe('Testes do Módulo Jogador', () => {
             it('deve lançar erro quando nome não fornecido', async () => {
                 await expect(JogadorService.criarExterno({ posicao: 'Atacante' }))
                     .rejects.toThrow('Nome é obrigatório');
-            });
-
-            it('deve criar jogador externo sem posição', async () => {
-                const mockJogador = { 
-                    id: 2, 
-                    tipo: 'externo', 
-                    nome: 'Maria Santos', 
-                    posicao: null 
-                };
-                vi.spyOn(JogadorModel, 'createExterno').mockResolvedValue(mockJogador);
-
-                const resultado = await JogadorService.criarExterno({ 
-                    nome: 'Maria Santos', 
-                    criado_por: 123 
-                });
-
-                expect(resultado).toEqual(mockJogador);
             });
         });
 
@@ -315,13 +271,11 @@ describe('Testes do Módulo Jogador', () => {
                 const resultado = await JogadorService.adicionarExternoAPartida({
                     partida_id: 1,
                     nome: 'Pedro Costa',
-                    posicao: 'Goleiro',
                     criado_por: 123
                 });
 
                 expect(JogadorModel.createExterno).toHaveBeenCalledWith({
                     nome: 'Pedro Costa',
-                    posicao: 'Goleiro',
                     criado_por: 123
                 });
                 expect(resultado).toEqual({ participante_id: 2, jogador_id: 789 });
@@ -388,9 +342,8 @@ describe('Testes do Módulo Jogador', () => {
                     id: 1, 
                     tipo: 'externo', 
                     nome: 'João Silva', 
-                    posicao: 'Atacante' 
                 };
-                req.body = { nome: 'João Silva', posicao: 'Atacante' };
+                req.body = { nome: 'João Silva' };
 
                 vi.spyOn(JogadorService, 'criarExterno').mockResolvedValue(mockJogador);
 
@@ -398,7 +351,6 @@ describe('Testes do Módulo Jogador', () => {
 
                 expect(JogadorService.criarExterno).toHaveBeenCalledWith({
                     nome: 'João Silva',
-                    posicao: 'Atacante',
                     criado_por: 123
                 });
                 expect(res.status).toHaveBeenCalledWith(201);

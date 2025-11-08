@@ -31,6 +31,10 @@ export const PartidaService = {
     return PartidaModel.findPlayedByUserId(userId);
   },
 
+  findResumoPlayedByUserId(userId) {
+    return PartidaModel.findResumoPlayedByUserId(userId);
+  },
+
   findByCity(city) {
     return PartidaModel.findByCity(city);
   },

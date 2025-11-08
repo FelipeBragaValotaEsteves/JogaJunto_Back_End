@@ -59,7 +59,7 @@ export const AuthService = {
         if (deviceSerial) { await UsuarioModel.updateDeviceToken(user.id, deviceSerial); }
 
         const token = signToken({ sub: user.id, email: user.email });
-        return { user: { id: user.id, name: user.nome, email: user.email, created_at: user.criado_em }, token };
+        return { user: { id: user.id, name: user.nome, email: user.email, created_at: user.criado_em, img: user.img }, token };
     },
 
     async changePassword({ userId, senha_atual, nova_senha }) {

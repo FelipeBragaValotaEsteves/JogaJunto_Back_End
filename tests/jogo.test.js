@@ -32,7 +32,7 @@ describe('Testes do Módulo Jogo', () => {
                 const resultado = await JogoModel.getPartidaById(1);
 
                 expect(db.query).toHaveBeenCalledWith(
-                    'SELECT id, usuario_criador_id FROM public.partida WHERE id = $1',
+                    'SELECT id, usuario_criador_id FROM partida WHERE id = $1',
                     [1]
                 );
                 expect(resultado).toEqual(mockPartida);
@@ -85,29 +85,6 @@ describe('Testes do Módulo Jogo', () => {
             });
         });
 
-        describe('updateJogo', () => {
-            it('deve atualizar jogo com sucesso', async () => {
-                const mockJogo = { id: 1, nome: 'Jogo Final' };
-                db.query.mockResolvedValue({ rows: [mockJogo] });
-
-                const resultado = await JogoModel.updateJogo(1, 'Jogo Final');
-
-                expect(db.query).toHaveBeenCalledWith(
-                    expect.any(String),
-                    [1, 'Jogo Final']
-                );
-                expect(resultado).toEqual(mockJogo);
-            });
-
-            it('deve retornar null quando jogo não encontrado para atualizar', async () => {
-                db.query.mockResolvedValue({ rows: [] });
-
-                const resultado = await JogoModel.updateJogo(999, 'Jogo Final');
-
-                expect(resultado).toBeNull();
-            });
-        });
-
         describe('deleteTimesByJogoId', () => {
             it('deve deletar times do jogo', async () => {
                 db.query.mockResolvedValue({ rows: [] });
@@ -115,7 +92,7 @@ describe('Testes do Módulo Jogo', () => {
                 await JogoModel.deleteTimesByJogoId(1);
 
                 expect(db.query).toHaveBeenCalledWith(
-                    'DELETE FROM public.partida_jogo_time WHERE partida_jogo_id = $1',
+                    'DELETE FROM partida_jogo_time WHERE partida_jogo_id = $1',
                     [1]
                 );
             });
@@ -128,7 +105,7 @@ describe('Testes do Módulo Jogo', () => {
                 await JogoModel.deleteJogo(1);
 
                 expect(db.query).toHaveBeenCalledWith(
-                    'DELETE FROM public.partida_jogo WHERE id = $1',
+                    'DELETE FROM partida_jogo WHERE id = $1',
                     [1]
                 );
             });

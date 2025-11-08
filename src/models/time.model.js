@@ -3,7 +3,7 @@ import { db } from '../config/database.js';
 export const TimeModel = {
   async createTime(partida_jogo_id, nome) {
     const q = `
-      INSERT INTO public.partida_jogo_time (partida_jogo_id, nome)
+      INSERT INTO partida_jogo_time (partida_jogo_id, nome)
       VALUES ($1, $2)
       RETURNING id, partida_jogo_id, nome
     `;
@@ -14,7 +14,7 @@ export const TimeModel = {
   async findTimeById(id) {
     const q = `
       SELECT id, partida_jogo_id, nome
-      FROM public.partida_jogo_time
+      FROM partida_jogo_time
       WHERE id = $1
       LIMIT 1
     `;
@@ -24,7 +24,7 @@ export const TimeModel = {
 
   async updateTime(id, { nome }) {
     const q = `
-      UPDATE public.partida_jogo_time
+      UPDATE partida_jogo_time
       SET nome = COALESCE($2, nome)
       WHERE id = $1
       RETURNING id, partida_jogo_id, nome
@@ -34,6 +34,6 @@ export const TimeModel = {
   },
 
   async deleteTime(id) {
-    await db.query(`DELETE FROM public.partida_jogo_time WHERE id = $1`, [id]);
+    await db.query(`DELETE FROM partida_jogo_time WHERE id = $1`, [id]);
   }
 };

@@ -2,7 +2,7 @@ import { db } from '../config/database.js';
 
 export const ConviteModel = {
   async getPartidaById(id) {
-    const q = 'SELECT id, usuario_criador_id FROM public.partida WHERE id = $1';
+    const q = 'SELECT id, usuario_criador_id FROM partida WHERE id = $1';
     const { rows } = await db.query(q, [id]);
     return rows[0] || null;
   },
@@ -10,7 +10,7 @@ export const ConviteModel = {
   async existsAny(partida_id, usuario_id) {
     const q = `
     SELECT 1
-    FROM public.convite
+    FROM convite
     WHERE partida_id = $1 AND usuario_id = $2 and status <> 'recusado'
     LIMIT 1
   `;
@@ -20,7 +20,7 @@ export const ConviteModel = {
 
   async create({ partida_id, usuario_id, status }) {
     const q = `
-    INSERT INTO public.convite (usuario_id, partida_id, status)
+    INSERT INTO convite (usuario_id, partida_id, status)
     VALUES ($1, $2, $3)
     RETURNING id, usuario_id, partida_id, status
   `;
@@ -31,7 +31,7 @@ export const ConviteModel = {
   async findPending(partida_id, usuario_id) {
     const q = `
     SELECT id, usuario_id, partida_id, status
-    FROM public.convite
+    FROM convite
     WHERE partida_id = $1 AND usuario_id = $2 AND status = 'pendente'
     LIMIT 1
   `;
@@ -42,8 +42,8 @@ export const ConviteModel = {
   async findPendingById(id) {
     const q = `
     SELECT c.id, c.usuario_id, c.partida_id, c.status, p.usuario_criador_id
-    FROM public.convite c
-    INNER JOIN public.partida p ON p.id = c.partida_id
+    FROM convite c
+    INNER JOIN partida p ON p.id = c.partida_id
     WHERE c.id = $1 AND c.status = 'pendente'
     LIMIT 1
   `;
@@ -53,7 +53,7 @@ export const ConviteModel = {
 
   async updateStatus(id, status) {
     const q = `
-    UPDATE public.convite
+    UPDATE convite
     SET status = $2
     WHERE id = $1
     RETURNING id, usuario_id, partida_id, status
@@ -64,7 +64,7 @@ export const ConviteModel = {
 
   async ensureParticipante({ partida_id, jogador_id, nota }) {
     const checkQ = `
-    SELECT id FROM public.partida_participante
+    SELECT id FROM partida_participante
     WHERE partida_id = $1 AND jogador_id = $2
     LIMIT 1
   `;
@@ -72,7 +72,7 @@ export const ConviteModel = {
     if (exists.rows[0]) return exists.rows[0];
 
     const insertQ = `
-    INSERT INTO public.partida_participante (partida_id, jogador_id, nota)
+    INSERT INTO partida_participante (partida_id, jogador_id, nota)
     VALUES ($1, $2, $3)
     RETURNING id, partida_id, jogador_id, nota
   `;
@@ -89,8 +89,8 @@ export const ConviteModel = {
       COALESCE(u.nome, '') AS nome,
       COALESCE(u.foto_url, u.imagem_url, u.avatar_url, u.foto, u.imagem) AS imagem_url,
       c.status
-    FROM public.convite c
-    JOIN public.usuario u ON u.id = c.usuario_id
+    FROM convite c
+    JOIN usuario u ON u.id = c.usuario_id
     WHERE c.partida_id = $1
     ORDER BY c.id DESC
   `;
@@ -108,12 +108,20 @@ export const ConviteModel = {
       p.local,
       p.data,
       p.hora_inicio
-    FROM public.convite c
-    JOIN public.partida p ON p.id = c.partida_id
+    FROM convite c
+    JOIN partida p ON p.id = c.partida_id
     WHERE c.usuario_id = $1
     ORDER BY c.id DESC
   `;
     const { rows } = await db.query(q, [usuario_id]);
     return rows;
+  },
+
+  async delete(id) {
+    const q = `
+    DELETE FROM convite
+    WHERE id = $1
+  `;
+    await db.query(q, [id]);
   }
 };

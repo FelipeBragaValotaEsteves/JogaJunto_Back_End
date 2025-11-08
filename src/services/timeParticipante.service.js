@@ -29,7 +29,6 @@ export const TimeParticipanteService = {
     if (!tp) return 'not_found_tp';
 
     const partidaInfo = await TimeParticipanteModel.getPartidaInfoByTimeParticipanteId(timeParticipanteId);
-    console.log(partidaInfo, solicitanteId);
     
     if (!partidaInfo || partidaInfo.usuario_criador_id !== solicitanteId) return 'forbidden';
 

@@ -1,7 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import request from 'supertest';
 import express from 'express';
-import jogoRoutes from '../../src/routes/jogo.routes.js';
 
 vi.mock('../../src/config/database.js', () => ({
     db: {
@@ -25,8 +24,9 @@ vi.mock('../../src/services/time.service.js', () => ({
 }));
 
 import { db } from '../../src/config/database.js';
+import { db } from '../../src/config/database.js';
 import { TimeService } from '../../src/services/time.service.js';
-
+import jogoRoutes from '../../src/routes/jogo.routes.js';
 describe('Testes de Integração das Rotas de Jogo', () => {
     let app;
 
@@ -142,52 +142,6 @@ describe('Testes de Integração das Rotas de Jogo', () => {
         });
     });
 
-    describe('PUT /jogo/:jogoId', () => {
-        it('deve editar jogo com sucesso', async () => {
-            const mockJogo = { id: 1, partida_id: 1 };
-            const mockPartida = { id: 1, usuario_criador_id: 123 };
-            const mockJogoAtualizado = { id: 1, nome: 'Jogo Final' };
-
-            db.query
-                .mockResolvedValueOnce({ rows: [mockJogo] })
-                .mockResolvedValueOnce({ rows: [mockPartida] })
-                .mockResolvedValueOnce({ rows: [mockPartida] })
-                .mockResolvedValueOnce({ rows: [mockJogoAtualizado] });
-
-            const response = await request(app)
-                .put('/jogo/1')
-                .send({ nome: 'Jogo Final' })
-                .expect(200);
-
-            expect(response.body).toEqual(mockJogoAtualizado);
-        });
-
-        it('deve retornar 404 quando jogo não encontrado', async () => {
-            db.query.mockResolvedValue({ rows: [] });
-
-            await request(app)
-                .put('/jogo/999')
-                .send({ nome: 'Jogo Final' })
-                .expect(404);
-        });
-
-        it('deve retornar 403 quando usuário não é criador', async () => {
-            mockAuthUser = { id: 999, email: 'notcreator@example.com' };
-            
-            const mockJogo = { id: 1, partida_id: 1 };
-            const mockPartida = { id: 1, usuario_criador_id: 123 };
-
-            db.query
-                .mockResolvedValueOnce({ rows: [mockJogo] })
-                .mockResolvedValueOnce({ rows: [mockPartida] });
-
-            await request(app)
-                .put('/jogo/1')
-                .send({ nome: 'Jogo Final' })
-                .expect(403);
-        });
-    });
-
     describe('DELETE /jogo/:jogoId', () => {
         it('deve excluir jogo com sucesso', async () => {
             const mockJogo = { id: 1, partida_id: 1 };
@@ -249,6 +203,7 @@ describe('Testes de Integração das Rotas de Jogo', () => {
                     cartao_amarelo: 0,
                     cartao_vermelho: 0,
                     jogador_nome: 'João Silva',
+                    posicao_nome: 'Atacante',
                     foto: 'foto1.jpg'
                 }
             ];

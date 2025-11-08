@@ -3,7 +3,7 @@ import { db } from "../config/database.js";
 export const NotificacaoModel = {
   async create({ usuario_id, mensagem }) {
     const q = `
-      INSERT INTO public.notificacao (usuario_id, mensagem, vista, datahora_envio)
+      INSERT INTO notificacao (usuario_id, mensagem, vista, datahora_envio)
       VALUES ($1, $2, $3, NOW())
       RETURNING *;
     `;
@@ -19,7 +19,7 @@ export const NotificacaoModel = {
         n.mensagem,
         n.vista,
         n.datahora_envio
-      FROM public.notificacao n
+      FROM notificacao n
       WHERE n.usuario_id = $1
       ORDER BY n.datahora_envio DESC;
     `;

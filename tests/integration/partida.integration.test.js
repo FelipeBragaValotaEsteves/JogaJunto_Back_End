@@ -189,10 +189,10 @@ describe('Testes de Integração das Rotas de Partida', () => {
         });
     });
 
-    describe('GET /partida/jogada/:userId', () => {
+    describe('GET /partida/jogada', () => {
         it('deve retornar partidas onde usuário participou', async () => {
             const mockPartidas = [
-                { id: 1, participou: true, data: '2024-12-01' }
+                { id: 1, data: '2024-12-01' }
             ];
 
             db.query.mockResolvedValue({ rows: mockPartidas });

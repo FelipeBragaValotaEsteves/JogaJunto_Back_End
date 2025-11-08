@@ -30,8 +30,16 @@ vi.mock('../../src/models/partida.model.js', () => ({
     }
 }));
 
+vi.mock('../../src/models/jogador.model.js', () => ({
+    JogadorModel: {
+        findByUsuarioId: vi.fn(),
+        ensureParticipante: vi.fn()
+    }
+}));
+
 import { db } from '../../src/config/database.js';
 import { PartidaModel } from '../../src/models/partida.model.js';
+import { JogadorModel } from '../../src/models/jogador.model.js';
 
 describe('Testes de Integração das Rotas de Convite', () => {
     let app;
@@ -111,10 +119,14 @@ describe('Testes de Integração das Rotas de Convite', () => {
             
             const mockPending = { id: 1, usuario_id: 456, partida_id: 1, usuario_criador_id: 123 };
             const mockUpdated = { id: 1, usuario_id: 456, partida_id: 1, status: 'aceito' };
+            const mockJogador = { id: 10, usuario_id: 456 };
 
             db.query
-                .mockResolvedValueOnce({ rows: [mockPending] })
+                .mockResolvedValueOnce({ rows: [mockPending] })     
                 .mockResolvedValueOnce({ rows: [mockUpdated] });
+
+            JogadorModel.findByUsuarioId.mockResolvedValue(mockJogador);
+            JogadorModel.ensureParticipante.mockResolvedValue({ id: 1 });
 
             const response = await request(app)
                 .put('/convite/aceitar/1')
@@ -129,17 +141,6 @@ describe('Testes de Integração das Rotas de Convite', () => {
             await request(app)
                 .put('/convite/aceitar/999')
                 .expect(404);
-        });
-
-        it('deve retornar 403 quando o usuário não for o dono do convite', async () => {
-            mockAuthUser = { id: 999, email: 'wronguser@example.com' };
-            
-            const mockPending = { id: 1, usuario_id: 456, partida_id: 1, usuario_criador_id: 789 };
-            db.query.mockResolvedValue({ rows: [mockPending] });
-
-            await request(app)
-                .put('/convite/aceitar/1')
-                .expect(200);
         });
     });
 

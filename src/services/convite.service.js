@@ -49,16 +49,19 @@ export const ConviteService = {
     return { convite: updated };
   },
 
-  async cancelar({id, solicitanteId}) {
-    
+  async remover({id, solicitante_id}) {
+
     const pending = await ConviteModel.findPendingById(id);
     if (!pending) return 'not_found';
 
-    if (pending.usuario_criador_id !== solicitanteId) {
+    const partida = await ConviteModel.getPartidaById(pending.partida_id);
+    if (!partida) return 'not_found_partida';
+
+    if (partida.usuario_criador_id !== solicitante_id) {
       return 'forbidden';
     }
 
-    const updated = await ConviteModel.updateStatus(pending.id, 'cancelado');
+    const updated = await ConviteModel.delete(pending.id);
     return { convite: updated };
   },
 
