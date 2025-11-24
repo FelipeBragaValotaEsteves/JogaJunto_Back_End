@@ -77,7 +77,7 @@ export const PartidaModel = {
   async findByUserId(userId) {
     const { rows } = await db.query(
       `SELECT * FROM partida
-        WHERE usuario_criador_id = $1
+        WHERE usuario_criador_id = $1 and status <> 'cancelada'
         ORDER BY data DESC, hora_inicio DESC`,
       [userId]
     );
@@ -90,7 +90,7 @@ export const PartidaModel = {
       `SELECT DISTINCT p.* FROM partida p
        INNER JOIN partida_participante pp ON pp.partida_id = p.id 
        INNER JOIN jogador j ON j.id = pp.jogador_id 
-       WHERE j.usuario_id = $1  
+       WHERE j.usuario_id = $1 and p.usuario_criador_id <> $1 and p.status = 'cancelada'
       ORDER BY data DESC, hora_inicio DESC`,
       [userId]
     );
@@ -103,7 +103,7 @@ export const PartidaModel = {
       `SELECT DISTINCT p.* FROM partida p
        INNER JOIN partida_participante pp ON pp.partida_id = p.id 
        INNER JOIN jogador j ON j.id = pp.jogador_id 
-       WHERE j.usuario_id = $1  
+       WHERE j.usuario_id = $1 and p.usuario_criador_id <> $1
       ORDER BY data DESC, hora_inicio DESC
       LIMIT 5`,
       [userId]
