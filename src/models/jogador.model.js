@@ -109,39 +109,79 @@ export const JogadorModel = {
         return rows;
     },
 
+    // async findAllDisponiveisByJogo(partida_id, jogo_id) {
+    //     const q = `
+    //         SELECT
+    //             j.usuario_id AS id,
+    //             j.id AS id_jogador,
+    //             j.nome,
+    //             u.img AS foto,
+    //             COALESCE(
+    //               ARRAY_AGG(DISTINCT p.nome) FILTER (WHERE p.nome IS NOT NULL), 
+    //               '{}'
+    //             ) AS posicoes
+    //         FROM jogador j
+    //         INNER JOIN partida_participante pp 
+    //             ON j.id = pp.jogador_id 
+    //             AND pp.partida_id = $1
+    //         LEFT JOIN partida_jogo_time_participante pjtp
+    //             ON pp.id = pjtp.partida_participante_id
+    //         LEFT JOIN partida_jogo_time pjt
+    //             ON pjtp.partida_jogo_time_id = pjt.id
+    //             AND pjt.partida_jogo_id = $2
+    //         LEFT JOIN usuario u
+    //             ON j.usuario_id = u.id
+    //         LEFT JOIN usuario_posicao up
+    //             ON u.id = up.usuario_id
+    //         LEFT JOIN posicao p 
+    //             ON p.id = up.posicao_id
+    //         WHERE 
+    //             pjt.id IS NULL 
+    //         GROUP BY 
+    //             j.usuario_id, j.id, j.nome, u.img 
+    //         ORDER BY 
+    //             j.nome ASC;
+    //     `;
+
+    //     const { rows } = await db.query(q, [partida_id, jogo_id]);
+    //     return rows;
+    // },
+
     async findAllDisponiveisByJogo(partida_id, jogo_id) {
         const q = `
-            SELECT
-                j.usuario_id AS id,
-                j.id AS id_jogador,
-                j.nome,
-                u.img AS foto,
-                COALESCE(
-                  ARRAY_AGG(DISTINCT p.nome) FILTER (WHERE p.nome IS NOT NULL), 
-                  '{}'
-                ) AS posicoes
-            FROM jogador j
-            INNER JOIN partida_participante pp 
-                ON j.id = pp.jogador_id 
-                AND pp.partida_id = $1
-            LEFT JOIN partida_jogo_time_participante pjtp
-                ON pp.id = pjtp.partida_participante_id
-            LEFT JOIN partida_jogo_time pjt
-                ON pjtp.partida_jogo_time_id = pjt.id
-                AND pjt.partida_jogo_id = $2
-            LEFT JOIN usuario u
-                ON j.usuario_id = u.id
-            LEFT JOIN usuario_posicao up
-                ON u.id = up.usuario_id
-            LEFT JOIN posicao p 
-                ON p.id = up.posicao_id
-            WHERE 
-                pjt.id IS NULL 
-            GROUP BY 
-                j.usuario_id, j.id, j.nome, u.img 
-            ORDER BY 
-                j.nome ASC;
-        `;
+    SELECT
+      j.usuario_id AS id,
+      j.id AS id_jogador,
+      j.nome,
+      u.img AS foto,
+      COALESCE(
+        ARRAY_AGG(DISTINCT p.nome) FILTER (WHERE p.nome IS NOT NULL), 
+        '{}'
+      ) AS posicoes
+    FROM jogador j
+    INNER JOIN partida_participante pp 
+      ON j.id = pp.jogador_id 
+      AND pp.partida_id = $1
+    LEFT JOIN partida_jogo_time_participante pjtp
+      ON pp.id = pjtp.partida_participante_id
+    LEFT JOIN partida_jogo_time pjt
+      ON pjtp.partida_jogo_time_id = pjt.id
+    LEFT JOIN usuario u
+      ON j.usuario_id = u.id
+    LEFT JOIN usuario_posicao up
+      ON u.id = up.usuario_id
+    LEFT JOIN posicao p 
+      ON p.id = up.posicao_id
+    GROUP BY 
+      j.usuario_id, j.id, j.nome, u.img 
+    HAVING 
+      COUNT(
+        CASE 
+          WHEN pjt.partida_jogo_id = $2 THEN 1 
+        END
+      ) = 0
+    ORDER BY 
+      j.nome ASC; `;
 
         const { rows } = await db.query(q, [partida_id, jogo_id]);
         return rows;

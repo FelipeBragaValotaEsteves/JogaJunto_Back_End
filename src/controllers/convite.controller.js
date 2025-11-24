@@ -29,7 +29,8 @@ export const ConviteController = {
             data: {
               tipo: 'convite_partida',
               convite_id: result.id,
-              partida_id: partida_id
+              partida_id: partida_id,
+              route: "/(tabs)/invites"
             }
           });
         }
@@ -66,7 +67,8 @@ export const ConviteController = {
             data: {
               tipo: 'convite_aceito',
               partida_id: result.convite.partida_id,
-              usuario_id: authUserId
+              usuario_id: authUserId,
+              route: "/(tabs)/matchPlayers?matchId=" + result.convite.partida_id + "&showEditButton=true"
             }
           });
         }
@@ -103,7 +105,8 @@ export const ConviteController = {
             data: {
               tipo: 'convite_recusado',
               partida_id: result.convite.partida_id,
-              usuario_id: authUserId
+              usuario_id: authUserId,
+              route: "/(tabs)/matchPlayers?matchId=" + result.convite.partida_id + "&showEditButton=true"
             }
           });
         }
